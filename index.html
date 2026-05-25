@@ -25,7 +25,6 @@
     --muted:   #6b7080;
     --muted2:  #9098a8;
     --panel-w: 360px;
-    /* line group colors */
     --c-blue:   #1a7ec8;
     --c-yellow: #d4a800;
     --c-green:  #009a00;
@@ -47,7 +46,6 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* ── SIDEBAR ── */
   #sidebar {
     width: var(--panel-w);
     min-width: var(--panel-w);
@@ -86,10 +84,7 @@
     margin-top: 1px;
   }
 
-  /* ── SEARCH ── */
-  #search-wrap {
-    padding: 10px 10px 0;
-  }
+  #search-wrap { padding: 10px 10px 0; }
   #search {
     width: 100%;
     background: var(--bg);
@@ -108,7 +103,6 @@
   #search:focus { border-color: var(--c-blue); }
   #search::placeholder { color: var(--muted); }
 
-  /* ── ROUTE LIST ── */
   #route-list {
     flex: 1;
     overflow-y: auto;
@@ -126,8 +120,8 @@
     cursor: pointer;
     transition: background 0.1s;
   }
-  .route-item:hover   { background: rgba(255,255,255,0.04); }
-  .route-item.active  { background: rgba(255,255,255,0.07); }
+  .route-item:hover  { background: rgba(255,255,255,0.04); }
+  .route-item.active { background: rgba(255,255,255,0.07); }
 
   .route-badge {
     min-width: 46px;
@@ -169,7 +163,6 @@
     align-items: center;
   }
 
-  /* ── VARIANT BAR ── */
   #variant-bar {
     border-top: 1px solid var(--border);
     padding: 10px;
@@ -214,7 +207,6 @@
     border-color: transparent;
   }
 
-  /* ── ALL ROUTES TOGGLE ── */
   #all-wrap {
     padding: 10px 12px;
     border-top: 1px solid var(--border);
@@ -247,7 +239,6 @@
   input:checked + .slider { background: var(--c-blue); }
   input:checked + .slider:before { transform: translateX(13px); background: #fff; }
 
-  /* ── MAP ── */
   #map { flex: 1; height: 100vh; }
   .leaflet-tile-pane { filter: brightness(0.6) saturate(0.35); }
   .leaflet-container { background: #0c0d11; }
@@ -287,33 +278,29 @@
 <div id="map"></div>
 
 <script>
-// Load real STCP logo inline
 document.getElementById('logo-mark').innerHTML =
   '<img src="STCP_logo1_RGB.png" style="width:80px;height:auto;">';
 
 async function init() {
+
+// ── Load shapes ──
 const res = await fetch('shapes.txt');
 const csv = await res.text();
-
-// Parse CSV into SHAPES: { lineId: { "Dir 0 Trip 1.0": [[lat,lon],...], ... } }
 const SHAPES = {};
 const csvLines = csv.trim().split('\n');
-// header: shape_pt_lat,shape_pt_lon,shape_dist_traveled,shape_id,shape_pt_sequence
-const shapePoints = {}; // shape_id -> [ [seq, lat, lon] ]
+const shapePoints = {};
 for (let i = 1; i < csvLines.length; i++) {
   const [lat, lon, , shapeId, seq] = csvLines[i].split(',');
   if (!shapeId) continue;
   if (!shapePoints[shapeId]) shapePoints[shapeId] = [];
   shapePoints[shapeId].push([parseInt(seq), parseFloat(lat), parseFloat(lon)]);
 }
-// shapeId format: {LINE}_{ignored}_{direction}|{variant}  e.g. "107_0_1|0"
 for (const [shapeId, pts] of Object.entries(shapePoints)) {
   const underscoreIdx = shapeId.indexOf('_');
   if (underscoreIdx === -1) continue;
   const line = shapeId.slice(0, underscoreIdx);
-  const rest = shapeId.slice(underscoreIdx + 1);   // "0_1|0"
-  const parts = rest.split('_');                    // ["0","1|0"]
-  // parts[0] = ignored (Y), parts[1] = "direction|variant"
+  const rest = shapeId.slice(underscoreIdx + 1);
+  const parts = rest.split('_');
   const [dir, variant] = (parts[1] || '0|0').split('|');
   const variantKey = `Dir ${dir} v${variant}`;
   if (!SHAPES[line]) SHAPES[line] = {};
@@ -321,92 +308,94 @@ for (const [shapeId, pts] of Object.entries(shapePoints)) {
   SHAPES[line][variantKey] = pts.map(p => [p[1], p[2]]);
 }
 
-const ROUTES = {
-        "200": ["Bolhão", "Castelo do Queijo"],
-    	"401": ["Bolhão", "São Roque"],
-	    "502": ["Bolhão", "Matosinhos (Mercado)"],
-	    "700": ["Bolhão", "Campo"],
-	    "701": ["Bolhão", "Codiceira"],
-	    "702": ["Bolhão", "Travagem"],
-    	"800": ["Bolhão", "Gondomar"],
-    	"201": ["Aliados", "Viso"],
-	    "202": ["Aliados", "Passeio Alegre"],
-    	"208": ["Aliados", "Aldoar"],
-	    "304": ["Aliados", "Santa Luzia"],
-    	"400": ["Aliados", "Parque Nascente"],
-	    "501": ["Aliados", "Matosinhos (Praia)"],
-	    "600": ["Aliados", "Maia"],
-	    "1M": ["Aliados", "Matosinhos (Praia)"],
-    	"2M": ["Aliados", "Hospital de São João"],
-    	"3M": ["Aliados", "Aeroporto"],
-    	"4M": ["Aliados", "Maia (Câmara)"],
-	    "5M": ["Aliados", "Ermesinde (Estação)"],
-	    "7M": ["Aliados", "Valongo"],
-	    "8M": ["Aliados", "São Pedro da Cova"],
-    	"9M": ["Aliados", "Gondomar (Via TIC)"],
-    	"10M": ["Aliados", "Vila D'Este"],
-	    "12M": ["Aliados", "Santo Ovídio"],
-    	"13M": ["Aliados", "Matosinhos (Mercado)"],
-	    "107": ["Estádio do Dragão", "Areias"],
-	    "203": ["Estádio do Dragão", "Boavista (Casa da Música)"],
-	    "204": ["Hospital de São João", "Foz"],
-    	"505": ["Hospital de São João", "Matosinhos (Mercado)"],
-    	"506": ["Hospital de São João", "Matosinhos (Mercado)"],
-        "604": ["Hospital de São João", "Aeroporto (Via Crestins)"],
-    	"705": ["Hospital de São João", "Valongo (Continente)"],
-    	"706": ["Hospital de São João", "Ermesinde (Estação) (Via Monte Penedo)"],
-    	"707": ["Hospital de São João", "Ermesinde (Estação) (Via Arregadas)"],
-    	"804": ["Hospital de São João", "São Pedro da Cova"],
-        "11M": ["Hospital de São João", "Coimbrões"],
-	    "205": ["Campanhã", "Castelo do Queijo"],
-	    "206": ["Campanhã", "Viso"],
-	    "207": ["Campanhã", "Foz (Mercado)"],
-	    "404": ["Campanhã (TIC)", "Hospital de São João"],
-        "300": ["Circular (Via Hospital de São João / Aliados)", "Circular (Via Hospital de São João / Aliados)"],
-    	"301": ["Circular (Via Hospital de São João / Sá da Bandeira)", "Circular (Via Hospital de São João / Sá da Bandeira)"],
-	    "302": ["Circular (Via Aliados / Damião de Góis)", "Circular (Via Aliados / Damião de Góis)"],
-        "303": ["Circular (Via Praça da Liberdade / Constituição)", "Circular (Via Praça da Liberdade / Constituição)"],
-	    "305": ["Cordoaria", "Hospital de São João"],
-    	"507": ["Cordoaria", "MAR Shopping"],
-	    "601": ["Cordoaria", "Aeroporto (Via Mar Shopping)"],
-    	"602": ["Cordoaria", "Aeroporto (Via Padrão de Moreira)"],
-    	"703": ["Cordoaria", "Ermesinde (Via Sonhos)"],
-	    "801": ["Cordoaria", "São Pedro da Cova"],
-        "900": ["Cordoaria", "Francelos"],
-        "402": ["Boavista (Bom Sucesso)", "São Roque"],
-    	"503": ["Boavista (Bom Sucesso)", "Gatões"],
-	    "803": ["Boavista (Bom Sucesso)", "Rio Tinto (Escola Secundária)"],
-    	"907": ["Boavista (Bom Sucesso)", "Vila D'Este"],
-	    "403": ["Boavista (Casa da Música)", "Campanhã"],
-	    "504": ["Boavista (Casa da Música)", "Norteshopping"],
-    	"508": ["Boavista (Casa da Música)", "Cabo do Mundo (Via MAR Shopping)"],
-	    "704": ["Boavista (Casa da Música)", "Codiceira"],
-    	"902": ["Boavista (Casa da Música)", "Lavadores"],
-    	"903": ["Boavista (Casa da Música)", "Laborim"],
-	    "603": ["Marquês", "Maia (Espido)"],
-	    "605": ["Marquês", "Maia (Barca)"],
-    	"805": ["Marquês", "Rio Tinto (Estação)"],
-	    "806": ["Marquês", "Fânzeres (Metro)"],
-	    "901": ["Trindade", "Valadares"],
-	    "904": ["Trindade", "Coimbrões"],
-    	"905": ["Trindade", "Madalena (Centro Saúde)"],
-	    "906": ["Trindade", "Madalena"],
-        "500": ["São Bento", "Matosinhos (Mercado)"],
-        "209": ["Pasteleira", "Prelada"],
-        };
-function lineColor(s) {
-  if (s.endsWith('M')) return '#111111';
-  const n = parseInt(s);
-  if (n >= 100 && n <= 499) return getComputedStyle(document.documentElement).getPropertyValue('--c-blue').trim();
-  if (n >= 500 && n <= 599) return getComputedStyle(document.documentElement).getPropertyValue('--c-yellow').trim();
-  if (n >= 600 && n <= 699) return getComputedStyle(document.documentElement).getPropertyValue('--c-green').trim();
-  if (n >= 700 && n <= 799) return getComputedStyle(document.documentElement).getPropertyValue('--c-red').trim();
-  if (n >= 800 && n <= 899) return getComputedStyle(document.documentElement).getPropertyValue('--c-purple').trim();
-  if (n >= 900 && n <= 999) return getComputedStyle(document.documentElement).getPropertyValue('--c-orange').trim();
-  return '#555';
-}
+// ── Load stops ──
+const stopsRes = await fetch('stops.txt');
+const stopsCsv = await stopsRes.text();
+const STOPS = [];
+stopsCsv.trim().split('\n').slice(1).forEach(row => {
+  const parts = row.split(',');
+  const lat  = parseFloat(parts[0]);
+  const lon  = parseFloat(parts[1]);
+  const id   = parts[2];
+  const name = parts[4];
+  if (!name || isNaN(lat)) return;
+  STOPS.push({ lat, lon, id, name });
+});
 
-// Precompute colors once
+const ROUTES = {
+  "200": ["Bolhão", "Castelo do Queijo"],
+  "401": ["Bolhão", "São Roque"],
+  "502": ["Bolhão", "Matosinhos (Mercado)"],
+  "700": ["Bolhão", "Campo"],
+  "701": ["Bolhão", "Codiceira"],
+  "702": ["Bolhão", "Travagem"],
+  "800": ["Bolhão", "Gondomar"],
+  "201": ["Aliados", "Viso"],
+  "202": ["Aliados", "Passeio Alegre"],
+  "208": ["Aliados", "Aldoar"],
+  "304": ["Aliados", "Santa Luzia"],
+  "400": ["Aliados", "Parque Nascente"],
+  "501": ["Aliados", "Matosinhos (Praia)"],
+  "600": ["Aliados", "Maia"],
+  "1M": ["Aliados", "Matosinhos (Praia)"],
+  "2M": ["Aliados", "Hospital de São João"],
+  "3M": ["Aliados", "Aeroporto"],
+  "4M": ["Aliados", "Maia (Câmara)"],
+  "5M": ["Aliados", "Ermesinde (Estação)"],
+  "7M": ["Aliados", "Valongo"],
+  "8M": ["Aliados", "São Pedro da Cova"],
+  "9M": ["Aliados", "Gondomar (Via TIC)"],
+  "10M": ["Aliados", "Vila D'Este"],
+  "12M": ["Aliados", "Santo Ovídio"],
+  "13M": ["Aliados", "Matosinhos (Mercado)"],
+  "107": ["Estádio do Dragão", "Areias"],
+  "203": ["Estádio do Dragão", "Boavista (Casa da Música)"],
+  "204": ["Hospital de São João", "Foz"],
+  "505": ["Hospital de São João", "Matosinhos (Mercado)"],
+  "506": ["Hospital de São João", "Matosinhos (Mercado)"],
+  "604": ["Hospital de São João", "Aeroporto (Via Crestins)"],
+  "705": ["Hospital de São João", "Valongo (Continente)"],
+  "706": ["Hospital de São João", "Ermesinde (Estação) (Via Monte Penedo)"],
+  "707": ["Hospital de São João", "Ermesinde (Estação) (Via Arregadas)"],
+  "804": ["Hospital de São João", "São Pedro da Cova"],
+  "11M": ["Hospital de São João", "Coimbrões"],
+  "205": ["Campanhã", "Castelo do Queijo"],
+  "206": ["Campanhã", "Viso"],
+  "207": ["Campanhã", "Foz (Mercado)"],
+  "404": ["Campanhã (TIC)", "Hospital de São João"],
+  "300": ["Circular (Via Hospital de São João / Aliados)", "Circular (Via Hospital de São João / Aliados)"],
+  "301": ["Circular (Via Hospital de São João / Sá da Bandeira)", "Circular (Via Hospital de São João / Sá da Bandeira)"],
+  "302": ["Circular (Via Aliados / Damião de Góis)", "Circular (Via Aliados / Damião de Góis)"],
+  "303": ["Circular (Via Praça da Liberdade / Constituição)", "Circular (Via Praça da Liberdade / Constituição)"],
+  "305": ["Cordoaria", "Hospital de São João"],
+  "507": ["Cordoaria", "MAR Shopping"],
+  "601": ["Cordoaria", "Aeroporto (Via Mar Shopping)"],
+  "602": ["Cordoaria", "Aeroporto (Via Padrão de Moreira)"],
+  "703": ["Cordoaria", "Ermesinde (Via Sonhos)"],
+  "801": ["Cordoaria", "São Pedro da Cova"],
+  "900": ["Cordoaria", "Francelos"],
+  "402": ["Boavista (Bom Sucesso)", "São Roque"],
+  "503": ["Boavista (Bom Sucesso)", "Gatões"],
+  "803": ["Boavista (Bom Sucesso)", "Rio Tinto (Escola Secundária)"],
+  "907": ["Boavista (Bom Sucesso)", "Vila D'Este"],
+  "403": ["Boavista (Casa da Música)", "Campanhã"],
+  "504": ["Boavista (Casa da Música)", "Norteshopping"],
+  "508": ["Boavista (Casa da Música)", "Cabo do Mundo (Via MAR Shopping)"],
+  "704": ["Boavista (Casa da Música)", "Codiceira"],
+  "902": ["Boavista (Casa da Música)", "Lavadores"],
+  "903": ["Boavista (Casa da Música)", "Laborim"],
+  "603": ["Marquês", "Maia (Espido)"],
+  "605": ["Marquês", "Maia (Barca)"],
+  "805": ["Marquês", "Rio Tinto (Estação)"],
+  "806": ["Marquês", "Fânzeres (Metro)"],
+  "901": ["Trindade", "Valadares"],
+  "904": ["Trindade", "Coimbrões"],
+  "905": ["Trindade", "Madalena (Centro Saúde)"],
+  "906": ["Trindade", "Madalena"],
+  "500": ["São Bento", "Matosinhos (Mercado)"],
+  "209": ["Pasteleira", "Prelada"],
+};
+
 const CSS = getComputedStyle(document.documentElement);
 const COLORS = {
   blue:   CSS.getPropertyValue('--c-blue').trim(),
@@ -436,11 +425,11 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 }).addTo(map);
 
 let currentLayer = null;
+let stopLayers = [];
 let allLayers = [];
 let selectedLine = null;
 
 const lines = Object.keys(SHAPES).sort((a, b) => {
-  const aM = a.endsWith('M'), bM = b.endsWith('M');
   const aNum = parseInt(a), bNum = parseInt(b);
   if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
   if (!isNaN(aNum)) return -1;
@@ -473,7 +462,7 @@ function renderList(filter = '') {
     lbl.className = 'route-label';
     const arrowSvg = `<svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 1l4 4-4 4M5 9L1 5l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     const circularSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 0 1 7.39 16.74M12 2v4M19.39 18.74l-3.06-1.47M12 22a10 10 0 0 1-7.39-16.74M12 22v-4M4.61 5.26l3.06 1.47" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-    const isCircular = origin === 'Circular';
+    const isCircular = origin.startsWith('Circular');
     if (isCircular) {
       lbl.innerHTML = `<span class="route-arrow" style="margin:0 5px 0 0">${circularSvg}</span><span class="route-endpoint">${dest || origin}</span>`;
     } else {
@@ -507,11 +496,11 @@ function selectLine(line) {
     b.className = 'vbtn';
     const info = ROUTES[line];
     if (v === 'Dir 1 v0' && info) {
-      b.textContent = info[1]; // second destination e.g. "Castelo do Queijo"
+      b.textContent = info[1];
     } else if (v === 'Dir 2 v0' && info) {
-      b.textContent = info[0]; // first destination e.g. "Bolhão"
+      b.textContent = info[0];
     } else {
-      b.textContent = v; // keep unknown variants as-is
+      b.textContent = v;
     }
     b.addEventListener('click', () => {
       document.querySelectorAll('.vbtn').forEach(x => { x.classList.remove('active'); x.style.background = ''; });
@@ -525,13 +514,35 @@ function selectLine(line) {
 }
 
 function showRoute(line, variant) {
+  // Clear previous route and stops
   if (currentLayer) { map.removeLayer(currentLayer); currentLayer = null; }
+  stopLayers.forEach(l => map.removeLayer(l));
+  stopLayers = [];
+
   const coords = SHAPES[line][variant];
   const color  = lineColorFast(line);
+
   currentLayer = L.polyline(coords, {
     color, weight: 4, opacity: 1, lineJoin: 'round', lineCap: 'round'
   }).addTo(map);
   map.fitBounds(currentLayer.getBounds(), { padding: [40, 40] });
+
+  // Match stops within ~40m of any route point
+  const THRESHOLD = 0.0004;
+  STOPS.forEach(stop => {
+    const match = coords.some(([rlat, rlon]) =>
+      Math.abs(stop.lat - rlat) < THRESHOLD && Math.abs(stop.lon - rlon) < THRESHOLD
+    );
+    if (!match) return;
+    const marker = L.circleMarker([stop.lat, stop.lon], {
+      radius: 4,
+      color: '#fff',
+      weight: 2,
+      fillColor: color,
+      fillOpacity: 1
+    }).bindTooltip(stop.name, { permanent: false, direction: 'top' }).addTo(map);
+    stopLayers.push(marker);
+  });
 }
 
 document.getElementById('all-toggle').addEventListener('change', function() {
@@ -547,6 +558,7 @@ document.getElementById('all-toggle').addEventListener('change', function() {
     allLayers = [];
   }
 });
+
 } // end init()
 
 init();
