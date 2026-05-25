@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STCP Route Viewer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Frutiger';
+    src: url('frutiger-regular.woff2') format('woff2');
+    font-weight: 400;
+  }
+</style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -31,7 +37,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Frutiger', sans-serif;
     background: var(--bg);
     color: var(--text);
     height: 100vh;
@@ -282,16 +288,8 @@
 
 <script>
 // Load real STCP logo inline
-fetch('https://stcp.pt/uploads/logo.svg')
-  .then(r => r.text())
-  .then(svg => {
-    const el = document.getElementById('logo-mark');
-    if (el) {
-      el.innerHTML = svg;
-      const s = el.querySelector('svg');
-      if (s) { s.style.width='80px'; s.style.height='29px'; }
-    }
-  }).catch(() => {});
+document.getElementById('logo-mark').innerHTML =
+  '<img src="STCP_logo1_RGB.png" style="width:80px;height:auto;">';
 
 async function init() {
 const res = await fetch('shapes.txt');
