@@ -259,12 +259,12 @@
     <input id="search" type="text" placeholder="Escolha uma linha">
   </div>
 
-  <div id="route-list"></div>
-
   <div id="variant-bar">
     <div id="variant-label">Escolher variante</div>
     <div id="variant-btns"></div>
   </div>
+
+  <div id="route-list"></div>
 
   <div id="all-wrap">
     <label class="toggle">
@@ -420,7 +420,7 @@ function lineColorFast(s) {
 
 // Map init
 const map = L.map('map', { center: [41.157, -8.585], zoom: 12, zoomControl: true });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 19
 }).addTo(map);
 
@@ -528,11 +528,10 @@ function showRoute(line, variant) {
   map.fitBounds(currentLayer.getBounds(), { padding: [40, 40] });
 
   // Match stops within ~40m of any route point
-  const THRESHOLD = 0.0004;
   STOPS.forEach(stop => {
-    const match = coords.some(([rlat, rlon]) =>
-      Math.abs(stop.lat - rlat) < THRESHOLD && Math.abs(stop.lon - rlon) < THRESHOLD
-    );
+  const match = coords.some(([rlat, rlon]) =>
+    stop.lat === rlat && stop.lon === rlon
+  );
     if (!match) return;
     const marker = L.circleMarker([stop.lat, stop.lon], {
       radius: 4,
