@@ -324,7 +324,9 @@ btn.addEventListener('click', () => {
 async function init() {
 
 // ── Load shapes ──
-const res = await fetch('shapes.txt');
+const res = await fetch('shapes.txt', {
+  cache: 'no-store'
+});
 const csv = await res.text();
 const SHAPES = {};
 const csvLines = csv.trim().split('\n');
@@ -349,7 +351,9 @@ for (const [shapeId, pts] of Object.entries(shapePoints)) {
 }
 
 // ── Load stops ──
-const stopsRes = await fetch('stops.txt');
+const stopsRes = await fetch('stops.txt', {
+  cache: 'no-store'
+});
 const stopsCsv = await stopsRes.text();
 const STOPS = [];
 stopsCsv.trim().split('\n').slice(1).forEach(row => {
