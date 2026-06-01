@@ -24,7 +24,7 @@
     --text:    #f0f1f5;
     --muted:   #6b7080;
     --muted2:  #9098a8;
-    --panel-w: 280px;
+    --panel-w: 360px;
     --c-blue:   #1a7ec8;
     --c-yellow: #d4a800;
     --c-green:  #009a00;
@@ -239,7 +239,12 @@
   input:checked + .slider { background: var(--c-blue); }
   input:checked + .slider:before { transform: translateX(13px); background: #fff; }
 
-  #map { flex: 1; height: 100vh; }
+  #map {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100vh;
+}
 
   #sidebar {
   transition: width 0.25s, min-width 0.25s;
@@ -472,9 +477,9 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_D
   maxZoom: 16
 }).addTo(map);
 
-setTimeout(() => {
-  map.invalidateSize();
-}, 500);
+requestAnimationFrame(() => {
+  map.invalidateSize(true);
+});
 
 let currentLayer = null;
 let stopLayers = [];
