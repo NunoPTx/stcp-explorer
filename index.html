@@ -239,12 +239,7 @@
   input:checked + .slider { background: var(--c-blue); }
   input:checked + .slider:before { transform: translateX(13px); background: #fff; }
 
-  #map {
-  flex: 1 1 auto;
-  width: 100%;
-  min-width: 0;
-  height: 100vh;
-}
+  #map { flex: 1; height: 100vh; }
 
   #sidebar {
   transition: width 0.25s, min-width 0.25s;
@@ -276,12 +271,6 @@
 
 .leaflet-top.leaflet-left {
   top: 50px;
-}
-  
-@media (max-width: 768px) {
-  :root {
-    --panel-w: 250px;
-  }
 }
   
 </style>
@@ -471,15 +460,10 @@ function lineColorFast(s) {
 
 // Map init
 const map = L.map('map', { center: [41.157, -8.585], zoom: 12, zoomControl: true });
-
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
   attribution: '&copy; Esri, HERE, Garmin, FAO, NOAA, USGS, EPA',
   maxZoom: 16
 }).addTo(map);
-
-requestAnimationFrame(() => {
-  map.invalidateSize(true);
-});
 
 let currentLayer = null;
 let stopLayers = [];
@@ -613,10 +597,6 @@ document.getElementById('all-toggle').addEventListener('change', function() {
     allLayers.forEach(l => map.removeLayer(l));
     allLayers = [];
   }
-});
-
-window.addEventListener('resize', () => {
-  map.invalidateSize();
 });
 
 } // end init()
