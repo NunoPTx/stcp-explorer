@@ -28,7 +28,6 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.193567,-8.696674,1ILEC1,1ILEC1,Igreja De Leça,MTS2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1ILEC1
 41.193808,-8.696874,1ILEC2,1ILEC2,Igreja De Leça,MTS2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1ILEC2
 41.124321,-8.618902,1JFT1,1JFT1,José Fontana,VNG1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1JFT1
-41.145883,-8.612838,1LOI3,1LOI3,Lóios,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1LOI3
 41.212505,-8.675936,1MAVO1,1MAVO1,Monte Avó,MTS2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1MAVO1
 41.212618,-8.676052,1MAVO2,1MAVO2,Monte Avó,MTS2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1MAVO2
 41.130435,-8.630094,1MST1,1MST1,Machado Dos Santos,VNG1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1MST1
@@ -41,7 +40,6 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.213702,-8.593404,1RGH2,1RGH2,R. General Humberto Delgado,MAI4,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1RGH2
 41.136045,-8.533121,1RI1,1RI1,Rua Da Igreja,GDM1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1RI1
 41.144713,-8.610836,1SBNT,1SBNT,S.bento,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1SBNT
-41.144628,-8.610812,1SBNT1,1SBNT1,Est.s.bento,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1SBNT1
 41.166573,-8.649752,1SJB1,1SJB1,S. João Brito,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1SJB1
 41.166810,-8.649780,1SJB2,1SJB2,S. Joao Brito,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1SJB2
 41.131800,-8.632996,1TFL1,1TFL1,Tv. Fonte Lodosa,VNG1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1TFL1
