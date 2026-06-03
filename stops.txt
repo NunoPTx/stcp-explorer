@@ -10,11 +10,13 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.182980,-8.600450,0HSJ8,0HSJ8,Hosp. S. João (circunvalação),PRT3,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=0HSJ8
 41.182980,-8.600450,0HSJ9,0HSJ9,Hosp. S. João (circunvalação),PRT3,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=0HSJ9
 41.151560,-8.610430,0TRD6,0TRD6,Trindade,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=0TRD6
+41.238848,-8.659886,1ADM1,1ADM1,Altino Domingues Moreira,VCD8,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1ADM1
 41.149118,-8.610010,1AL6,1AL6,Av.aliados,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1AL6
 41.205692,-8.563856,1ALDG1,1ALDG1,Alameda Da Granja,MAI4,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1ALDG1
 41.205557,-8.564125,1ALDG2,1ALDG2,Alameda Da Granja,MAI4,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1ALDG2
 41.155925,-8.627762,1BS2,1BS2,Boavista - B.sucesso,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1BS2
 41.154520,-8.628210,1BS3,1BS3,Boavista - B.sucesso,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1BS3
+41.240969,-8.665372,1BTC2,1BTC2,Botica,VCD8,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1BTC2
 41.131652,-8.627853,1CAP1,1CAP1,Castro Portugal,VNG1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1CAP1
 41.215031,-8.590868,1CMLH1,1CMLH1,Correios Milheirós,MAI4,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1CMLH1
 41.215330,-8.590617,1CMLH2,1CMLH2,Correios Milheirós,MAI4,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1CMLH2
@@ -434,7 +436,6 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.160520,-8.644060,BSS1,BSS1,Bessa,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=BSS1
 41.160182,-8.643361,BSS2,BSS2,Bessa,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=BSS2
 41.160061,-8.644154,BSS6,BSS6,Bessa,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=BSS6
-41.238914,-8.663903,BTC2,BTC2,Botica,VCD8,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=BTC2
 41.145083,-8.607167,BTLH1,BTLH1,Batalha,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=BTLH1
 41.143722,-8.604083,BTLH5,BTLH5,Batalha,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=BTLH5
 41.144912,-8.604411,BTLH6,BTLH6,Batalha,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=BTLH6
@@ -914,7 +915,6 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.232388,-8.660790,ESTR2,ESTR2,Rua Da Estrada,VCD8,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=ESTR2
 41.159452,-8.525249,ESTV1,ESTV1,Estivada,GDM1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=ESTV1
 41.160035,-8.525509,ESTV2,ESTV2,Estivada,GDM1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=ESTV2
-41.171792,-8.687763,ETRP2,ETRP2,Edif. Transparente,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=ETRP2
 41.174449,-8.653793,EZC1,EZC1,Ezequiel Campos,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=EZC1
 41.174402,-8.654055,EZC2,EZC2,Ezequiel Campos,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=EZC2
 41.210627,-8.628861,EZC3,EZC3,Ezequiel Campos,MAI1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=EZC3
