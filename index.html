@@ -887,7 +887,6 @@ function updateBusPanel() {
         return;
     }
 
-    const info  = ROUTES[selectedLine];
     const dest  = info
         ? (selectedDirection === 0 ? info[1] : selectedDirection === 1 ? info[0] : info[0] + ' ↔ ' + info[1])
         : `Sentido ${selectedDirection}`;
