@@ -275,6 +275,9 @@
         }
 
         .leaflet-top.leaflet-left { top: 50px; }
+        @media (max-width: 768px) {
+            .leaflet-control-zoom { display: none; }
+        }
 
         /* ── Dashboard ── */
         #dashboard {
@@ -356,6 +359,9 @@
         }
         #bus-panel.visible { display: flex; }
         #bus-panel.sidebar-closed { left: 20px; }
+        @media (max-width: 768px) {
+            #bus-panel.sidebar-closed { left: 50px; }
+        }
 
         #bus-panel-header {
             padding: 9px 11px 7px;
@@ -1137,7 +1143,17 @@ async function updateBuses() {
         liveData = data;
         updateBusPanel();
         document.getElementById('counter').innerText  = `Buses: ${data.length}`;
-        document.getElementById('timestamp').innerText = `Last Update: ${new Date().toLocaleTimeString('pt-PT')}`;
+        // Use the timestamp from the data if present (Unix seconds), else fall back to now
+        const rawTs = data[0]?.timestamp ?? data[0]?.ts ?? data[0]?.time ?? null;
+        let tsDisplay;
+        if (rawTs && typeof rawTs === 'number' && rawTs > 1000000000) {
+            tsDisplay = new Date(rawTs * 1000).toLocaleTimeString('pt-PT');
+        } else if (rawTs && typeof rawTs === 'string') {
+            tsDisplay = new Date(rawTs).toLocaleTimeString('pt-PT');
+        } else {
+            tsDisplay = new Date().toLocaleTimeString('pt-PT');
+        }
+        document.getElementById('timestamp').innerText = `Last Update: ${tsDisplay}`;
     } catch (e) { console.error(e); }
 }
 
