@@ -1,611 +1,834 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STCP Routes</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<style>
-  @font-face {
-    font-family: 'Frutiger';
-    src: url('frutiger-regular.woff2') format('woff2');
-    font-weight: 400;
-  }
-</style>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<style>
-  :root {
-    --bg:      #111318;
-    --panel:   #1a1d24;
-    --panel2:  #14161c;
-    --border:  #25282f;
-    --border2: #2e3138;
-    --text:    #f0f1f5;
-    --muted:   #6b7080;
-    --muted2:  #9098a8;
-    --panel-w: 360px;
-    --c-blue:   #1a7ec8;
-    --c-yellow: #d4a800;
-    --c-green:  #009a00;
-    --c-red:    #d42020;
-    --c-purple: #8833dd;
-    --c-orange: #e06800;
-  }
+    <meta charset="UTF-8">
+    <title>STCP Live</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        @font-face {
+            font-family: 'FrutigerLTStdCn';
+            src: url('frutigerLTStd-Cn.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Frutiger';
+            src: url('frutiger-regular.woff2') format('woff2');
+            font-weight: 400;
+        }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg:      #111318;
+            --panel:   #1a1d24;
+            --panel2:  #14161c;
+            --border:  #25282f;
+            --border2: #2e3138;
+            --text:    #f0f1f5;
+            --muted:   #6b7080;
+            --muted2:  #9098a8;
+            --panel-w: 360px;
+            --c-blue:   #1a7ec8;
+            --c-yellow: #d4a800;
+            --c-green:  #009a00;
+            --c-red:    #d42020;
+            --c-purple: #8833dd;
+            --c-orange: #e06800;
+        }
 
-  body {
-    font-family: 'Frutiger', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    display: flex;
-    overflow: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  #sidebar {
-    width: var(--panel-w);
-    min-width: var(--panel-w);
-    background: var(--panel);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    z-index: 1000;
-  }
+        body {
+            font-family: 'FrutigerLTStdCn', 'Frutiger', sans-serif;
+            background: #111;
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
 
-  #sidebar-header {
-    padding: 16px 14px 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+        /* ── Sidebar ── */
+        #sidebar {
+            width: var(--panel-w);
+            min-width: var(--panel-w);
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            transition: width 0.25s, min-width 0.25s;
+        }
+        #sidebar.collapsed {
+            width: 0;
+            min-width: 0;
+            overflow: hidden;
+        }
 
-  .logo-mark {
-    width: 80px; height: 29px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .logo-mark svg { width: 80px !important; height: 29px !important; }
+        #sidebar-header {
+            padding: 16px 14px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-mark {
+            width: 80px; height: 29px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        #header-text h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            color: var(--text);
+            line-height: 1.2;
+        }
+        #header-text p {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 1px;
+        }
 
-  #header-text h1 {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: -0.2px;
-    color: var(--text);
-    line-height: 1.2;
-  }
-  #header-text p {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 1px;
-  }
+        #search-wrap { padding: 10px 10px 0; }
+        #search {
+            width: 100%;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border2);
+            border-radius: 7px;
+            padding: 8px 10px 8px 32px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.15s;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7' stroke='%236b7080' stroke-width='2'/%3E%3Cpath d='m20 20-3.5-3.5' stroke='%236b7080' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: 10px center;
+        }
+        #search:focus { border-color: var(--c-blue); }
+        #search::placeholder { color: var(--muted); }
 
-  #search-wrap { padding: 10px 10px 0; }
-  #search {
-    width: 100%;
-    background: var(--bg);
-    color: var(--text);
-    border: 1px solid var(--border2);
-    border-radius: 7px;
-    padding: 8px 10px 8px 32px;
-    font-family: inherit;
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.15s;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7' stroke='%236b7080' stroke-width='2'/%3E%3Cpath d='m20 20-3.5-3.5' stroke='%236b7080' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: 10px center;
-  }
-  #search:focus { border-color: var(--c-blue); }
-  #search::placeholder { color: var(--muted); }
+        #route-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 0 4px;
+        }
+        #route-list::-webkit-scrollbar { width: 3px; }
+        #route-list::-webkit-scrollbar-track { background: transparent; }
+        #route-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-  #route-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 6px 0 4px;
-  }
-  #route-list::-webkit-scrollbar { width: 3px; }
-  #route-list::-webkit-scrollbar-track { background: transparent; }
-  #route-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+        .route-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 10px;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .route-item:hover  { background: rgba(255,255,255,0.04); }
+        .route-item.active { background: rgba(255,255,255,0.07); }
 
-  .route-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 10px;
-    cursor: pointer;
-    transition: background 0.1s;
-  }
-  .route-item:hover  { background: rgba(255,255,255,0.04); }
-  .route-item.active { background: rgba(255,255,255,0.07); }
+        .route-badge {
+            min-width: 46px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            flex-shrink: 0;
+            color: #fff;
+        }
+        .route-label {
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            min-width: 0;
+            flex: 1;
+        }
+        .route-endpoint {
+            font-size: 12px;
+            color: var(--text);
+            font-weight: 600;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+            flex-shrink: 1;
+        }
+        .route-arrow {
+            flex-shrink: 0;
+            margin: 0 4px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+        }
 
-  .route-badge {
-    min-width: 46px;
-    height: 26px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    flex-shrink: 0;
-    color: #fff;
-  }
+        #variant-bar {
+            border-top: 1px solid var(--border);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 7px;
+            background: var(--panel2);
+        }
+        #variant-bar.visible { display: flex; }
+        #variant-label {
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        #variant-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .vbtn {
+            background: var(--bg);
+            color: var(--muted2);
+            border: 1px solid var(--border2);
+            border-radius: 5px;
+            padding: 4px 10px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.12s;
+            line-height: 1.4;
+        }
+        .vbtn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+        .vbtn.active { color: #fff; font-weight: 600; border-color: transparent; }
 
-  .route-label {
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    min-width: 0;
-    flex: 1;
-  }
-  .route-endpoint {
-    font-size: 12px;
-    color: var(--text);
-    font-weight: 600;
-    line-height: 1.3;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
-    flex-shrink: 1;
-  }
-  .route-arrow {
-    flex-shrink: 0;
-    margin: 0 4px;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-  }
+        #all-wrap {
+            padding: 10px 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--panel2);
+        }
+        #all-wrap span {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--muted2);
+            cursor: pointer;
+            user-select: none;
+        }
+        .toggle { position: relative; width: 30px; height: 17px; flex-shrink: 0; }
+        .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .slider {
+            position: absolute; inset: 0;
+            background: var(--border2); border-radius: 17px; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .slider:before {
+            content: ''; position: absolute;
+            width: 11px; height: 11px; left: 3px; top: 3px;
+            background: var(--muted); border-radius: 50%;
+            transition: transform 0.18s, background 0.18s;
+        }
+        input:checked + .slider { background: var(--c-blue); }
+        input:checked + .slider:before { transform: translateX(13px); background: #fff; }
 
-  #variant-bar {
-    border-top: 1px solid var(--border);
-    padding: 10px;
-    display: none;
-    flex-direction: column;
-    gap: 7px;
-    background: var(--panel2);
-  }
-  #variant-bar.visible { display: flex; }
+        /* ── Toggle button ── */
+        #toggle-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2000;
+            background: var(--panel);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            border-radius: 7px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: left 0.25s;
+        }
+        #toggle-btn.open { left: 370px; }
 
-  #variant-label {
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
+        /* ── Map ── */
+        #map { flex: 1; height: 100vh; background: #111; }
 
-  #variant-btns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
+        .leaflet-top.leaflet-left { top: 50px; }
 
-  .vbtn {
-    background: var(--bg);
-    color: var(--muted2);
-    border: 1px solid var(--border2);
-    border-radius: 5px;
-    padding: 4px 10px;
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.12s;
-    line-height: 1.4;
-  }
-  .vbtn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
-  .vbtn.active {
-    color: #fff;
-    font-weight: 600;
-    border-color: transparent;
-  }
+        /* ── Dashboard ── */
+        #dashboard {
+            position: absolute; top: 10px; right: 10px; z-index: 1000;
+            background: rgba(0,0,0,0.85); color: white; padding: 10px;
+            border-radius: 8px; font-family: 'FrutigerLTStdCn', sans-serif; border: 1px solid #444;
+            text-align: right; pointer-events: none;
+        }
 
-  #all-wrap {
-    padding: 10px 12px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--panel2);
-  }
-  #all-wrap span {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--muted2);
-    cursor: pointer;
-    user-select: none;
-  }
+        /* ── GPS button ── */
+        .gps-button {
+            position: absolute; bottom: 30px; right: 20px; z-index: 1000;
+            width: 45px; height: 45px; background: rgba(20,20,20,0.9);
+            border: 1.5px solid #00f3ff; border-radius: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px rgba(0,243,255,0.2); pointer-events: auto;
+            transition: all 0.2s ease;
+        }
+        .gps-button:active { transform: scale(0.9); background: #00f3ff; }
+        .gps-button:active svg { stroke: #000; }
 
-  .toggle { position: relative; width: 30px; height: 17px; flex-shrink: 0; }
-  .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-  .slider {
-    position: absolute; inset: 0;
-    background: var(--border2); border-radius: 17px; cursor: pointer;
-    transition: background 0.2s;
-  }
-  .slider:before {
-    content: ''; position: absolute;
-    width: 11px; height: 11px; left: 3px; top: 3px;
-    background: var(--muted); border-radius: 50%;
-    transition: transform 0.18s, background 0.18s;
-  }
-  input:checked + .slider { background: var(--c-blue); }
-  input:checked + .slider:before { transform: translateX(13px); background: #fff; }
+        /* ── User location marker ── */
+        .user-location-marker {
+            background: none !important;
+            border: none !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .neon-box {
+            width: 12px; height: 12px;
+            border: 2px solid #00f3ff;
+            background: rgba(0, 243, 255, 0.4);
+            box-shadow: 0 0 10px #00f3ff, inset 0 0 4px #00f3ff;
+            animation: pulse-neon 2s infinite;
+            box-sizing: border-box;
+        }
+        @keyframes pulse-neon {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
 
-  #map { flex: 1; height: 100vh; }
-
-  #sidebar {
-  transition: width 0.25s, min-width 0.25s;
-}
-#sidebar.collapsed {
-  width: 0;
-  min-width: 0;
-  overflow: hidden;
-}
-#toggle-btn {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 2000;
-  background: var(--panel);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  border-radius: 7px;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  transition: left 0.25s;
-}
-#toggle-btn.open { left: 370px; }
-
-.leaflet-top.leaflet-left {
-  top: 50px;
-}
-  
-</style>
+        /* ── Bus markers ── */
+        .bus-wrapper {
+            position: relative; width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .bus-dot {
+            width: 14px; height: 14px;
+            border-radius: 50%; border: 2px solid white;
+            box-shadow: 0 0 4px rgba(0,0,0,0.6); z-index: 2;
+        }
+        .bus-direction {
+            position: absolute; width: 100%; height: 100%;
+            top: 0; left: 0; transition: transform 0.5s ease-in-out;
+            z-index: 1; pointer-events: none;
+        }
+        @media (max-width: 768px) { .bus-wrapper { transform: scale(0.7); } }
+        .leaflet-marker-icon { transition: none !important; }
+    </style>
 </head>
 <body>
-  
+
 <button id="toggle-btn" class="open">&#8249;</button>
-  
+
 <div id="sidebar">
-  <div id="sidebar-header">
-    <div class="logo-mark" id="logo-mark"></div>
-    <div id="header-text">
-      <h1>Visualizador Linhas</h1>
-      <p>Porto · 75 Linhas</p>
+    <div id="sidebar-header">
+        <div class="logo-mark" id="logo-mark"></div>
+        <div id="header-text">
+            <h1>Visualizador Linhas</h1>
+            <p>Porto · 75 Linhas</p>
+        </div>
     </div>
-  </div>
 
-  <div id="search-wrap">
-    <input id="search" type="text" placeholder="Escolha uma linha">
-  </div>
+    <div id="search-wrap">
+        <input id="search" type="text" placeholder="Escolha uma linha">
+    </div>
 
-  <div id="variant-bar">
-    <div id="variant-label">Escolher variante</div>
-    <div id="variant-btns"></div>
-  </div>
+    <div id="variant-bar">
+        <div id="variant-label">Escolher variante</div>
+        <div id="variant-btns"></div>
+    </div>
 
-  <div id="route-list"></div>
+    <div id="route-list"></div>
 
-  <div id="all-wrap">
-    <label class="toggle">
-      <input type="checkbox" id="all-toggle">
-      <span class="slider"></span>
-    </label>
-    <span>Mostrar todas as linhas</span>
-  </div>
+    <div id="all-wrap">
+        <label class="toggle">
+            <input type="checkbox" id="all-toggle">
+            <span class="slider"></span>
+        </label>
+        <span>Mostrar todas as linhas</span>
+    </div>
 </div>
 
 <div id="map"></div>
 
+<div id="dashboard">
+    <div id="counter" style="font-weight:bold; font-size: 16px;">Connecting...</div>
+    <div id="timestamp" style="font-size:10px; color:#aaa; margin-top:2px;">Waiting for data...</div>
+</div>
+
+<div class="gps-button" onclick="centerMapOnUser()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00f3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+    </svg>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+
+// ── Logo & sidebar toggle ──
 document.getElementById('logo-mark').innerHTML =
-  '<img src="STCP_logo1_RGB.png" style="width:80px;height:auto;">';
-  
-const btn = document.getElementById('toggle-btn');
-const sidebar = document.getElementById('sidebar');
-btn.addEventListener('click', () => {
-  sidebar.classList.toggle('collapsed');
-  btn.classList.toggle('open');
-  btn.textContent = sidebar.classList.contains('collapsed') ? '›' : '‹';
-});
-async function init() {
+    '<img src="STCP_logo1_RGB.png" style="width:80px;height:auto;">';
 
-// ── Load shapes ──
-const res = await fetch('shapes.txt', {
-  cache: 'no-store'
-});
-const csv = await res.text();
-const SHAPES = {};
-const csvLines = csv.trim().split('\n');
-const shapePoints = {};
-for (let i = 1; i < csvLines.length; i++) {
-  const [lat, lon, , shapeId, seq] = csvLines[i].split(',');
-  if (!shapeId) continue;
-  if (!shapePoints[shapeId]) shapePoints[shapeId] = [];
-  shapePoints[shapeId].push([parseInt(seq), parseFloat(lat), parseFloat(lon)]);
-}
-for (const [shapeId, pts] of Object.entries(shapePoints)) {
-  const underscoreIdx = shapeId.indexOf('_');
-  if (underscoreIdx === -1) continue;
-  const line = shapeId.slice(0, underscoreIdx);
-  const rest = shapeId.slice(underscoreIdx + 1);
-  const parts = rest.split('_');
-  const [dir, variant] = (parts[1] || '0|0').split('|');
-  const variantKey = `Dir ${dir} v${variant}`;
-  if (!SHAPES[line]) SHAPES[line] = {};
-  pts.sort((a, b) => a[0] - b[0]);
-  SHAPES[line][variantKey] = pts.map(p => [p[1], p[2]]);
-}
-
-// ── Load stops ──
-const stopsRes = await fetch('stops.txt', {
-  cache: 'no-store'
-});
-const stopsCsv = await stopsRes.text();
-const STOPS = [];
-stopsCsv.trim().split('\n').slice(1).forEach(row => {
-  const parts = row.split(',');
-  const lat  = parseFloat(parts[0]);
-  const lon  = parseFloat(parts[1]);
-  const id   = parts[2];
-  const name = parts[4];
-  if (!name || isNaN(lat)) return;
-  STOPS.push({ lat, lon, id, name });
+const toggleBtn = document.getElementById('toggle-btn');
+const sidebar   = document.getElementById('sidebar');
+toggleBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    toggleBtn.classList.toggle('open');
+    toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '›' : '‹';
 });
 
+// ── Route data ──
 const ROUTES = {
-  "200": ["Bolhão", "Castelo do Queijo"],
-  "401": ["Bolhão", "São Roque"],
-  "502": ["Bolhão", "Matosinhos (Mercado)"],
-  "700": ["Bolhão", "Campo"],
-  "701": ["Bolhão", "Codiceira"],
-  "702": ["Bolhão", "Travagem"],
-  "800": ["Bolhão", "Gondomar"],
-  "201": ["Aliados", "Viso"],
-  "202": ["Aliados", "Passeio Alegre"],
-  "208": ["Aliados", "Aldoar"],
-  "304": ["Aliados", "Santa Luzia"],
-  "400": ["Aliados", "Parque Nascente"],
-  "501": ["Aliados", "Matosinhos (Praia)"],
-  "600": ["Aliados", "Maia"],
-  "1M": ["Aliados", "Matosinhos (Praia)"],
-  "2M": ["Aliados", "Hospital de São João"],
-  "3M": ["Aliados", "Aeroporto"],
-  "4M": ["Aliados", "Maia (Câmara)"],
-  "5M": ["Aliados", "Ermesinde (Estação)"],
-  "7M": ["Aliados", "Valongo"],
-  "8M": ["Aliados", "São Pedro da Cova"],
-  "9M": ["Aliados", "Gondomar (Via TIC)"],
-  "10M": ["Aliados", "Vila D'Este"],
-  "12M": ["Aliados", "Santo Ovídio"],
-  "13M": ["Aliados", "Matosinhos (Mercado)"],
-  "107": ["Estádio do Dragão", "Areias"],
-  "203": ["Estádio do Dragão", "Boavista (Casa da Música)"],
-  "204": ["Hospital de São João", "Foz"],
-  "505": ["Hospital de São João", "Matosinhos (Mercado)"],
-  "506": ["Hospital de São João", "Matosinhos (Mercado)"],
-  "604": ["Hospital de São João", "Aeroporto (Via Crestins)"],
-  "705": ["Hospital de São João", "Valongo (Continente)"],
-  "706": ["Hospital de São João", "Ermesinde (Estação) (Via Monte Penedo)"],
-  "707": ["Hospital de São João", "Ermesinde (Estação) (Via Arregadas)"],
-  "804": ["Hospital de São João", "São Pedro da Cova"],
-  "11M": ["Hospital de São João", "Coimbrões"],
-  "205": ["Campanhã", "Castelo do Queijo"],
-  "206": ["Campanhã", "Viso"],
-  "207": ["Campanhã", "Foz (Mercado)"],
-  "404": ["Campanhã (TIC)", "Hospital de São João"],
-  "300": ["Circular (Via Hospital de São João / Aliados)", "Circular (Via Hospital de São João / Aliados)"],
-  "301": ["Circular (Via Hospital de São João / Sá da Bandeira)", "Circular (Via Hospital de São João / Sá da Bandeira)"],
-  "302": ["Circular (Via Aliados / Damião de Góis)", "Circular (Via Aliados / Damião de Góis)"],
-  "303": ["Circular (Via Praça da Liberdade / Constituição)", "Circular (Via Praça da Liberdade / Constituição)"],
-  "305": ["Cordoaria", "Hospital de São João"],
-  "507": ["Cordoaria", "MAR Shopping"],
-  "601": ["Cordoaria", "Aeroporto (Via Mar Shopping)"],
-  "602": ["Cordoaria", "Aeroporto (Via Padrão de Moreira)"],
-  "703": ["Cordoaria", "Ermesinde (Via Sonhos)"],
-  "801": ["Cordoaria", "São Pedro da Cova"],
-  "900": ["Cordoaria", "Francelos"],
-  "402": ["Boavista (Bom Sucesso)", "São Roque"],
-  "503": ["Boavista (Bom Sucesso)", "Gatões"],
-  "803": ["Boavista (Bom Sucesso)", "Rio Tinto (Escola Secundária)"],
-  "907": ["Boavista (Bom Sucesso)", "Vila D'Este"],
-  "403": ["Boavista (Casa da Música)", "Campanhã"],
-  "504": ["Boavista (Casa da Música)", "Norteshopping"],
-  "508": ["Boavista (Casa da Música)", "Cabo do Mundo (Via MAR Shopping)"],
-  "704": ["Boavista (Casa da Música)", "Codiceira"],
-  "902": ["Boavista (Casa da Música)", "Lavadores"],
-  "903": ["Boavista (Casa da Música)", "Laborim"],
-  "603": ["Marquês", "Maia (Espido)"],
-  "605": ["Marquês", "Maia (Barca)"],
-  "805": ["Marquês", "Rio Tinto (Estação)"],
-  "806": ["Marquês", "Fânzeres (Metro)"],
-  "901": ["Trindade", "Valadares"],
-  "904": ["Trindade", "Coimbrões"],
-  "905": ["Trindade", "Madalena (Centro Saúde)"],
-  "906": ["Trindade", "Madalena"],
-  "500": ["São Bento", "Matosinhos (Mercado)"],
-  "209": ["Pasteleira", "Prelada"],
+    "200": ["Bolhão", "Castelo do Queijo"],
+    "401": ["Bolhão", "São Roque"],
+    "502": ["Bolhão", "Matosinhos (Mercado)"],
+    "700": ["Bolhão", "Campo"],
+    "701": ["Bolhão", "Codiceira"],
+    "702": ["Bolhão", "Travagem"],
+    "800": ["Bolhão", "Gondomar"],
+    "201": ["Aliados", "Viso"],
+    "202": ["Aliados", "Passeio Alegre"],
+    "208": ["Aliados", "Aldoar"],
+    "304": ["Aliados", "Santa Luzia"],
+    "400": ["Aliados", "Parque Nascente"],
+    "501": ["Aliados", "Matosinhos (Praia)"],
+    "600": ["Aliados", "Maia"],
+    "1M":  ["Aliados", "Matosinhos (Praia)"],
+    "2M":  ["Aliados", "Hospital de São João"],
+    "3M":  ["Aliados", "Aeroporto"],
+    "4M":  ["Aliados", "Maia (Câmara)"],
+    "5M":  ["Aliados", "Ermesinde (Estação)"],
+    "7M":  ["Aliados", "Valongo"],
+    "8M":  ["Aliados", "São Pedro da Cova"],
+    "9M":  ["Aliados", "Gondomar (Via TIC)"],
+    "10M": ["Aliados", "Vila D'Este"],
+    "12M": ["Aliados", "Santo Ovídio"],
+    "13M": ["Aliados", "Matosinhos (Mercado)"],
+    "107": ["Estádio do Dragão", "Areias"],
+    "203": ["Estádio do Dragão", "Boavista (Casa da Música)"],
+    "204": ["Hospital de São João", "Foz"],
+    "505": ["Hospital de São João", "Matosinhos (Mercado)"],
+    "506": ["Hospital de São João", "Matosinhos (Mercado)"],
+    "604": ["Hospital de São João", "Aeroporto (Via Crestins)"],
+    "705": ["Hospital de São João", "Valongo (Continente)"],
+    "706": ["Hospital de São João", "Ermesinde (Estação) (Via Monte Penedo)"],
+    "707": ["Hospital de São João", "Ermesinde (Estação) (Via Arregadas)"],
+    "804": ["Hospital de São João", "São Pedro da Cova"],
+    "11M": ["Hospital de São João", "Coimbrões"],
+    "205": ["Campanhã", "Castelo do Queijo"],
+    "206": ["Campanhã", "Viso"],
+    "207": ["Campanhã", "Foz (Mercado)"],
+    "404": ["Campanhã (TIC)", "Hospital de São João"],
+    "300": ["Circular (Via Hospital de São João / Aliados)", "Circular (Via Hospital de São João / Aliados)"],
+    "301": ["Circular (Via Hospital de São João / Sá da Bandeira)", "Circular (Via Hospital de São João / Sá da Bandeira)"],
+    "302": ["Circular (Via Aliados / Damião de Góis)", "Circular (Via Aliados / Damião de Góis)"],
+    "303": ["Circular (Via Praça da Liberdade / Constituição)", "Circular (Via Praça da Liberdade / Constituição)"],
+    "305": ["Cordoaria", "Hospital de São João"],
+    "507": ["Cordoaria", "MAR Shopping"],
+    "601": ["Cordoaria", "Aeroporto (Via Mar Shopping)"],
+    "602": ["Cordoaria", "Aeroporto (Via Padrão de Moreira)"],
+    "703": ["Cordoaria", "Ermesinde (Via Sonhos)"],
+    "801": ["Cordoaria", "São Pedro da Cova"],
+    "900": ["Cordoaria", "Francelos"],
+    "402": ["Boavista (Bom Sucesso)", "São Roque"],
+    "503": ["Boavista (Bom Sucesso)", "Gatões"],
+    "803": ["Boavista (Bom Sucesso)", "Rio Tinto (Escola Secundária)"],
+    "907": ["Boavista (Bom Sucesso)", "Vila D'Este"],
+    "403": ["Boavista (Casa da Música)", "Campanhã"],
+    "504": ["Boavista (Casa da Música)", "Norteshopping"],
+    "508": ["Boavista (Casa da Música)", "Cabo do Mundo (Via MAR Shopping)"],
+    "704": ["Boavista (Casa da Música)", "Codiceira"],
+    "902": ["Boavista (Casa da Música)", "Lavadores"],
+    "903": ["Boavista (Casa da Música)", "Laborim"],
+    "603": ["Marquês", "Maia (Espido)"],
+    "605": ["Marquês", "Maia (Barca)"],
+    "805": ["Marquês", "Rio Tinto (Estação)"],
+    "806": ["Marquês", "Fânzeres (Metro)"],
+    "901": ["Trindade", "Valadares"],
+    "904": ["Trindade", "Coimbrões"],
+    "905": ["Trindade", "Madalena (Centro Saúde)"],
+    "906": ["Trindade", "Madalena"],
+    "500": ["São Bento", "Matosinhos (Mercado)"],
+    "209": ["Pasteleira", "Prelada"],
 };
 
-const CSS = getComputedStyle(document.documentElement);
-const COLORS = {
-  blue:   CSS.getPropertyValue('--c-blue').trim(),
-  yellow: CSS.getPropertyValue('--c-yellow').trim(),
-  green:  CSS.getPropertyValue('--c-green').trim(),
-  red:    CSS.getPropertyValue('--c-red').trim(),
-  purple: CSS.getPropertyValue('--c-purple').trim(),
-  orange: CSS.getPropertyValue('--c-orange').trim(),
-};
+// ── Color helpers ──
+function getBusColor(line) {
+    if (!line) return '#ffffff';
+    const s = line.toString().toUpperCase().trim();
+    if (s.endsWith('M')) return '#000000';
+    if (s.startsWith('1') || s.startsWith('2') || s.startsWith('3') || s.startsWith('4') || s.includes('ZC')) return '#187ec2';
+    if (s.startsWith('5')) return '#fcd116';
+    if (s.startsWith('6')) return '#00ac00';
+    if (s.startsWith('7')) return '#ff0000';
+    if (s.startsWith('8')) return '#a347ff';
+    if (s.startsWith('9')) return '#ff7900';
+    return '#ffffff';
+}
 
 function lineColorFast(s) {
-  if (s.endsWith('M')) return '#111111';
-  const n = parseInt(s);
-  if (n >= 100 && n <= 499) return COLORS.blue;
-  if (n >= 500 && n <= 599) return COLORS.yellow;
-  if (n >= 600 && n <= 699) return COLORS.green;
-  if (n >= 700 && n <= 799) return COLORS.red;
-  if (n >= 800 && n <= 899) return COLORS.purple;
-  if (n >= 900 && n <= 999) return COLORS.orange;
-  return '#555';
+    if (s.endsWith('M')) return '#111111';
+    const n = parseInt(s);
+    if (n >= 100 && n <= 499) return '#1a7ec8';
+    if (n >= 500 && n <= 599) return '#d4a800';
+    if (n >= 600 && n <= 699) return '#009a00';
+    if (n >= 700 && n <= 799) return '#d42020';
+    if (n >= 800 && n <= 899) return '#8833dd';
+    if (n >= 900 && n <= 999) return '#e06800';
+    return '#555';
 }
 
-// Map init
-const map = L.map('map', { center: [41.157, -8.585], zoom: 12, zoomControl: true });
+// ── Map init ──
+const map = L.map('map', { center: [41.157, -8.585], zoom: 13, zoomControl: true, preferCanvas: true });
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-  attribution: '&copy; Esri, HERE, Garmin, FAO, NOAA, USGS, EPA',
-  maxZoom: 16
+    attribution: '&copy; Esri, HERE, Garmin, FAO, NOAA, USGS, EPA',
+    maxZoom: 16
 }).addTo(map);
 
-let currentLayer = null;
-let stopLayers = [];
-let allLayers = [];
-let selectedLine = null;
+// ── Shared state ──
+let isZooming    = false;
+let cachedShapes = null; // raw CSV text
+let SHAPES       = {};   // parsed: line -> variantKey -> [[lat,lon],...]
+let cachedStops  = null; // parsed stop objects
 
-const lines = Object.keys(SHAPES).sort((a, b) => {
-  const aNum = parseInt(a), bNum = parseInt(b);
-  if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
-  if (!isNaN(aNum)) return -1;
-  if (!isNaN(bNum)) return 1;
-  return a.localeCompare(b);
+// Route visualizer state
+let currentRouteLayer = null;
+let stopLayers        = [];
+let allLayers         = [];
+let selectedLine      = null;
+
+// Live bus state
+let busMarkers        = {};
+let userMarker        = null;
+let userPos           = null;
+
+map.on('zoomstart', () => { isZooming = true; });
+map.on('zoomend',   () => { isZooming = false; });
+
+// ── User location ──
+map.on('locationfound', (e) => {
+    userPos = e.latlng;
+    if (!userMarker) {
+        userMarker = L.marker(userPos, {
+            zIndexOffset: 1000,
+            icon: L.divIcon({
+                className: 'user-location-marker',
+                html: '<div class="neon-box"></div>',
+                iconSize: [12, 12],
+                iconAnchor: [6, 6]
+            })
+        }).addTo(map);
+    } else {
+        userMarker.setLatLng(userPos);
+    }
 });
+map.locate({ watch: true, enableHighAccuracy: true });
 
-const listEl = document.getElementById('route-list');
+function centerMapOnUser() {
+    if (userPos) {
+        map.flyTo(userPos, 16, { duration: 1.5 });
+    } else {
+        alert("A aguardar sinal GPS...");
+    }
+}
 
-function renderList(filter = '') {
-  listEl.innerHTML = '';
-  const q = filter.toLowerCase().trim();
-  lines.forEach(line => {
-    const info = ROUTES[line];
-    const origin = info ? info[0] : '';
-    const dest   = info ? info[1] : '';
-    if (q && !(line.toLowerCase().includes(q) || dest.toLowerCase().includes(q) || origin.toLowerCase().includes(q))) return;
+// ── Data loaders ──
+async function loadShapesCSV() {
+    if (cachedShapes !== null) return cachedShapes;
+    const r = await fetch('shapes.txt', { cache: 'no-store' });
+    cachedShapes = await r.text();
+    return cachedShapes;
+}
+
+async function loadStops() {
+    if (cachedStops) return cachedStops;
+    const r = await fetch('stops.txt', { cache: 'no-store' });
+    const csv = await r.text();
+    cachedStops = csv.trim().split('\n').slice(1).map(row => {
+        const parts = row.split(',');
+        return { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]), id: parts[2], name: parts[4] };
+    }).filter(s => !isNaN(s.lat) && !isNaN(s.lng) && s.name);
+    return cachedStops;
+}
+
+async function ensureSHAPES() {
+    if (Object.keys(SHAPES).length > 0) return;
+    const csv = await loadShapesCSV();
+    const csvLines = csv.trim().split('\n');
+    const shapePoints = {};
+    for (let i = 1; i < csvLines.length; i++) {
+        const [lat, lon, , shapeId, seq] = csvLines[i].split(',');
+        if (!shapeId) continue;
+        if (!shapePoints[shapeId]) shapePoints[shapeId] = [];
+        shapePoints[shapeId].push([parseInt(seq), parseFloat(lat), parseFloat(lon)]);
+    }
+    for (const [shapeId, pts] of Object.entries(shapePoints)) {
+        const underscoreIdx = shapeId.indexOf('_');
+        if (underscoreIdx === -1) continue;
+        const line = shapeId.slice(0, underscoreIdx);
+        const rest = shapeId.slice(underscoreIdx + 1);
+        const parts = rest.split('_');
+        const [dir, variant] = (parts[1] || '0|0').split('|');
+        const variantKey = `Dir ${dir} v${variant}`;
+        if (!SHAPES[line]) SHAPES[line] = {};
+        pts.sort((a, b) => a[0] - b[0]);
+        SHAPES[line][variantKey] = pts.map(p => [p[1], p[2]]);
+    }
+}
+
+// ── Route visualizer (sidebar) ──
+async function buildSidebar() {
+    await ensureSHAPES();
+
+    const lines = Object.keys(SHAPES).sort((a, b) => {
+        const aNum = parseInt(a), bNum = parseInt(b);
+        if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+        if (!isNaN(aNum)) return -1;
+        if (!isNaN(bNum)) return 1;
+        return a.localeCompare(b);
+    });
+
+    const listEl = document.getElementById('route-list');
+
+    function renderList(filter) {
+        listEl.innerHTML = '';
+        const q = (filter || '').toLowerCase().trim();
+        lines.forEach(line => {
+            const info   = ROUTES[line];
+            const origin = info ? info[0] : '';
+            const dest   = info ? info[1] : '';
+            if (q && !(line.toLowerCase().includes(q) || dest.toLowerCase().includes(q) || origin.toLowerCase().includes(q))) return;
+
+            const color = lineColorFast(line);
+            const item  = document.createElement('div');
+            item.className = 'route-item' + (line === selectedLine ? ' active' : '');
+            item.dataset.line = line;
+
+            const badge = document.createElement('div');
+            badge.className = 'route-badge';
+            badge.style.background = color;
+            badge.textContent = line === '107' ? 'ZC' : line;
+
+            const lbl = document.createElement('div');
+            lbl.className = 'route-label';
+            const arrowSvg    = `<svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M9 1l4 4-4 4M5 9L1 5l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+            const circularSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 0 1 7.39 16.74M12 2v4M19.39 18.74l-3.06-1.47M12 22a10 10 0 0 1-7.39-16.74M12 22v-4M4.61 5.26l3.06 1.47" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+            const isCircular  = origin.startsWith('Circular');
+            if (isCircular) {
+                lbl.innerHTML = `<span class="route-arrow" style="margin:0 5px 0 0">${circularSvg}</span><span class="route-endpoint">${dest || origin}</span>`;
+            } else {
+                lbl.innerHTML = `<span class="route-endpoint">${origin || line}</span><span class="route-arrow">${arrowSvg}</span><span class="route-endpoint">${dest || ''}</span>`;
+            }
+
+            item.appendChild(badge);
+            item.appendChild(lbl);
+            item.addEventListener('click', () => selectLine(line, renderList));
+            listEl.appendChild(item);
+        });
+    }
+
+    renderList('');
+    document.getElementById('search').addEventListener('input', e => renderList(e.target.value));
+
+    document.getElementById('all-toggle').addEventListener('change', function() {
+        if (this.checked) {
+            lines.forEach(line => {
+                const color = lineColorFast(line);
+                Object.values(SHAPES[line]).forEach(coords => {
+                    allLayers.push(L.polyline(coords, { color, weight: 1.5, opacity: 0.18 }).addTo(map));
+                });
+            });
+        } else {
+            allLayers.forEach(l => map.removeLayer(l));
+            allLayers = [];
+        }
+    });
+}
+
+function selectLine(line, renderListFn) {
+    selectedLine = line;
+    if (renderListFn) renderListFn(document.getElementById('search').value);
+
+    const variants = Object.keys(SHAPES[line]);
+    const bar  = document.getElementById('variant-bar');
+    const btns = document.getElementById('variant-btns');
+    btns.innerHTML = '';
+    bar.classList.add('visible');
 
     const color = lineColorFast(line);
-    const item = document.createElement('div');
-    item.className = 'route-item' + (line === selectedLine ? ' active' : '');
-    item.dataset.line = line;
-
-    const badge = document.createElement('div');
-    badge.className = 'route-badge';
-    badge.style.background = color;
-    badge.textContent = line === '107' ? 'ZC' : line;
-
-    const lbl = document.createElement('div');
-    lbl.className = 'route-label';
-    const arrowSvg = `<svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 1l4 4-4 4M5 9L1 5l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    const circularSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 0 1 7.39 16.74M12 2v4M19.39 18.74l-3.06-1.47M12 22a10 10 0 0 1-7.39-16.74M12 22v-4M4.61 5.26l3.06 1.47" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-    const isCircular = origin.startsWith('Circular');
-    if (isCircular) {
-      lbl.innerHTML = `<span class="route-arrow" style="margin:0 5px 0 0">${circularSvg}</span><span class="route-endpoint">${dest || origin}</span>`;
-    } else {
-      lbl.innerHTML = `<span class="route-endpoint">${origin || line}</span><span class="route-arrow">${arrowSvg}</span><span class="route-endpoint">${dest || ''}</span>`;
-    }
-
-    item.appendChild(badge);
-    item.appendChild(lbl);
-    item.addEventListener('click', () => selectLine(line));
-    listEl.appendChild(item);
-  });
-}
-
-renderList();
-document.getElementById('search').addEventListener('input', e => renderList(e.target.value));
-
-function selectLine(line) {
-  selectedLine = line;
-  renderList(document.getElementById('search').value);
-
-  const variants = Object.keys(SHAPES[line]);
-  const bar  = document.getElementById('variant-bar');
-  const btns = document.getElementById('variant-btns');
-  btns.innerHTML = '';
-  bar.classList.add('visible');
-
-  const color = lineColorFast(line);
-
-  variants.forEach((v, i) => {
-    const b = document.createElement('button');
-    b.className = 'vbtn';
-    const info = ROUTES[line];
-    if (v === 'Dir 1 v0' && info) {
-      b.textContent = info[1];
-    } else if (v === 'Dir 2 v0' && info) {
-      b.textContent = info[0];
-    } else {
-      b.textContent = v;
-    }
-    b.addEventListener('click', () => {
-      document.querySelectorAll('.vbtn').forEach(x => { x.classList.remove('active'); x.style.background = ''; });
-      b.classList.add('active');
-      b.style.background = color;
-      showRoute(line, v);
+    variants.forEach((v, i) => {
+        const b    = document.createElement('button');
+        b.className = 'vbtn';
+        const info = ROUTES[line];
+        if (v === 'Dir 1 v0' && info)      b.textContent = info[1];
+        else if (v === 'Dir 2 v0' && info) b.textContent = info[0];
+        else                               b.textContent = v;
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.vbtn').forEach(x => { x.classList.remove('active'); x.style.background = ''; });
+            b.classList.add('active');
+            b.style.background = color;
+            showRouteFromSidebar(line, v);
+        });
+        btns.appendChild(b);
+        if (i === 0) b.click();
     });
-    btns.appendChild(b);
-    if (i === 0) b.click();
-  });
 }
 
-function showRoute(line, variant) {
-  // Clear previous route and stops
-  if (currentLayer) { map.removeLayer(currentLayer); currentLayer = null; }
-  stopLayers.forEach(l => map.removeLayer(l));
-  stopLayers = [];
+function showRouteFromSidebar(line, variant) {
+    clearRouteLayer();
+    const coords = SHAPES[line][variant];
+    const color  = lineColorFast(line);
+    currentRouteLayer = L.polyline(coords, {
+        color, weight: 4, opacity: 1, lineJoin: 'round', lineCap: 'round'
+    }).addTo(map);
+    map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
 
-  const coords = SHAPES[line][variant];
-  const color  = lineColorFast(line);
-
-  currentLayer = L.polyline(coords, {
-    color, weight: 4, opacity: 1, lineJoin: 'round', lineCap: 'round'
-  }).addTo(map);
-  map.fitBounds(currentLayer.getBounds(), { padding: [40, 40] });
-
-  // Match stops within ~40m of any route point
-  STOPS.forEach(stop => {
-  const match = coords.some(([rlat, rlon]) =>
-    stop.lat === rlat && stop.lon === rlon
-  );
-    if (!match) return;
-    const marker = L.circleMarker([stop.lat, stop.lon], {
-      radius: 4,
-      color: '#fff',
-      weight: 2,
-      fillColor: color,
-      fillOpacity: 1
-    }).bindTooltip(stop.name, { permanent: false, direction: 'top' }).addTo(map);
-    stopLayers.push(marker);
-  });
-}
-
-document.getElementById('all-toggle').addEventListener('change', function() {
-  if (this.checked) {
-    lines.forEach(line => {
-      const color = lineColorFast(line);
-      Object.values(SHAPES[line]).forEach(coords => {
-        allLayers.push(L.polyline(coords, { color, weight: 1.5, opacity: 0.18 }).addTo(map));
-      });
+    loadStops().then(stops => {
+        stops.forEach(stop => {
+            const match = coords.some(([rlat, rlon]) => stop.lat === rlat && stop.lng === rlon);
+            if (!match) return;
+            const marker = L.circleMarker([stop.lat, stop.lng], {
+                radius: 4, color: '#fff', weight: 2, fillColor: color, fillOpacity: 1
+            }).bindTooltip(stop.name, { permanent: false, direction: 'top' }).addTo(map);
+            stopLayers.push(marker);
+        });
     });
-  } else {
-    allLayers.forEach(l => map.removeLayer(l));
-    allLayers = [];
-  }
-});
+}
 
-} // end init()
+// ── Bus click route draw (from live map) ──
+async function drawRouteFromBus(line, directionId) {
+    clearRouteLayer();
+    try {
+        const csv = await loadShapesCSV();
+        const lines = csv.split('\n');
+        let coordsWithSequence = [];
+        const circularLines = ["300", "301", "302", "303"];
+        const routeIdInFile = circularLines.includes(line.toString()) ? "3" : (directionId + 1);
+        const targetPrefix  = `${line}_0_${routeIdInFile}`;
+        let detectedVariant = null;
+        for (let i = 1; i < lines.length; i++) {
+            const row = lines[i].split(',');
+            if (row.length < 5) continue;
+            const shapeId = row[3];
+            if (shapeId.startsWith(targetPrefix)) {
+                if (!detectedVariant) detectedVariant = shapeId;
+                if (shapeId === detectedVariant) {
+                    coordsWithSequence.push({ lat: parseFloat(row[0]), lng: parseFloat(row[1]), seq: parseInt(row[4]) });
+                }
+            }
+        }
+        coordsWithSequence.sort((a, b) => a.seq - b.seq);
+        const finalCoords = coordsWithSequence.map(c => [c.lat, c.lng]);
+        if (finalCoords.length > 0) {
+            currentRouteLayer = L.polyline(finalCoords, {
+                color: getBusColor(line), weight: 3, opacity: 1.0, lineJoin: 'round', interactive: false
+            }).addTo(map);
 
-init();
+            const stops = await loadStops();
+            const routePointSet = new Set(finalCoords.map(([lat, lng]) => `${lat},${lng}`));
+            stops.forEach(stop => {
+                if (!routePointSet.has(`${stop.lat},${stop.lng}`)) return;
+                const marker = L.circleMarker([stop.lat, stop.lng], {
+                    radius: 4, color: '#ffffff', weight: 2, fillColor: getBusColor(line), fillOpacity: 1
+                }).bindTooltip(stop.name, { direction: 'top' }).addTo(map);
+                stopLayers.push(marker);
+            });
+        }
+    } catch (e) { console.error(e); }
+}
+
+function clearRouteLayer() {
+    if (currentRouteLayer) { map.removeLayer(currentRouteLayer); currentRouteLayer = null; }
+    stopLayers.forEach(l => map.removeLayer(l));
+    stopLayers = [];
+}
+
+// ── Live bus updates ──
+async function updateBuses() {
+    if (isZooming) return;
+    try {
+        let data;
+        let workerOk = false;
+        try {
+            const r = await fetch('https://stcp-proxy.npeixoto2007.workers.dev', { signal: AbortSignal.timeout(5000) });
+            const json = await r.json();
+            if (Array.isArray(json) && json.length > 0) { workerOk = true; data = json; }
+        } catch (e) { console.warn('Worker failed:', e); }
+
+        if (!workerOk) {
+            console.warn('Worker empty or failed, falling back to FIWARE...');
+            try {
+                const r = await fetch('https://broker.fiware.urbanplatform.portodigital.pt/v2/entities?q=vehicleType==bus&limit=1000', { signal: AbortSignal.timeout(8000) });
+                const entities = await r.json();
+                if (Array.isArray(entities) && entities.length > 0) {
+                    data = entities.map(e => ({
+                        id:          e.fleetVehicleId?.value ?? e.id,
+                        lat:         e.location?.value?.coordinates?.[1] ?? null,
+                        lng:         e.location?.value?.coordinates?.[0] ?? null,
+                        bearing:     e.heading?.value ?? 0,
+                        routeId:     (e.annotations?.value?.find(a => a.startsWith('stcp:route:'))?.split(':')[2]) ?? '',
+                        directionId: parseInt(e.annotations?.value?.find(a => a.startsWith('stcp:sentido:'))?.split(':')[1]) || 0,
+                    }));
+                }
+            } catch (e) { console.warn('FIWARE also failed:', e); }
+        }
+
+        if (!data || data.length === 0) {
+            document.getElementById('counter').innerText = 'No data';
+            return;
+        }
+
+        const activeIds = new Set();
+        data.forEach(bus => {
+            const { id, lat, lng: lon, routeId: line, bearing, directionId } = bus;
+            if (!lat || !lon) return;
+            activeIds.add(id);
+            let sentidoText = directionId;
+            if (ROUTES[line]) { sentidoText = (directionId === 0) ? ROUTES[line][1] : ROUTES[line][0]; }
+            const popupContent = `<b>${line} | ${sentidoText} | ${id}${!workerOk ? ' <span style="color:#00ff00">*</span>' : ''}</b>`;
+
+            if (busMarkers[id]) {
+                const marker = busMarkers[id];
+                marker.setLatLng([lat, lon]);
+                if (marker.getPopup().getContent() !== popupContent) marker.setPopupContent(popupContent);
+                const iconWrapper = marker.getElement();
+                if (iconWrapper) {
+                    const svg = iconWrapper.querySelector('.bus-direction');
+                    if (svg) svg.style.transform = `rotate(${bearing}deg)`;
+                }
+            } else {
+                const color   = getBusColor(line);
+                const iconHtml = `<div class="bus-wrapper"><div class="bus-dot" style="background-color: ${color}"></div><svg class="bus-direction" style="transform: rotate(${bearing}deg)" viewBox="0 0 40 40"><path d="M20 4l5 8H15z" fill="white" /></svg></div>`;
+                const marker  = L.marker([lat, lon], {
+                    icon: L.divIcon({ className: 'bus-custom-icon', html: iconHtml, iconSize: [40, 40], iconAnchor: [20, 20] })
+                }).addTo(map);
+                marker.bindPopup(popupContent);
+                marker.on('click', () => drawRouteFromBus(line, directionId));
+                marker.on('popupclose', () => clearRouteLayer());
+                busMarkers[id] = marker;
+            }
+        });
+
+        for (const id in busMarkers) {
+            if (!activeIds.has(id)) { map.removeLayer(busMarkers[id]); delete busMarkers[id]; }
+        }
+        document.getElementById('counter').innerText  = `Buses: ${data.length}`;
+        document.getElementById('timestamp').innerText = `Last Update: ${new Date().toLocaleTimeString('pt-PT')}`;
+    } catch (e) { console.error(e); }
+}
+
+// ── Boot ──
+buildSidebar();
+updateBuses();
+setInterval(updateBuses, 2000);
+
 </script>
 </body>
 </html>
