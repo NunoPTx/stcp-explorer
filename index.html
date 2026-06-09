@@ -8,14 +8,9 @@
     <style>
         @font-face {
             font-family: 'FrutigerLTStdCn';
-            src: url('frutigerLTStd-Cn.woff2') format('woff2');
+            src: url('FrutigerLTStd-Cn.woff2') format('woff2');
             font-weight: normal;
             font-style: normal;
-        }
-        @font-face {
-            font-family: 'Frutiger';
-            src: url('frutiger-regular.woff2') format('woff2');
-            font-weight: 400;
         }
 
         :root {
@@ -39,7 +34,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'FrutigerLTStdCn', 'Frutiger', sans-serif;
+            font-family: 'FrutigerLTStdCn', sans-serif;
             background: #111;
             color: var(--text);
             height: 100vh;
@@ -338,7 +333,7 @@
             overflow: hidden;
             box-shadow: 0 4px 24px rgba(0,0,0,0.5);
             transition: left 0.25s;
-            font-family: 'FrutigerLTStdCn', 'Frutiger', sans-serif;
+            font-family: 'FrutigerLTStdCn', sans-serif;
         }
         #bus-panel.visible { display: flex; }
         #bus-panel.sidebar-closed { left: 20px; }
