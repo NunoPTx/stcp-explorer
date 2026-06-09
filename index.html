@@ -622,7 +622,7 @@ function lineColorFast(s) {
 }
 
 // ── Map init ──
-const map = L.map('map', { center: [41.157, -8.585], zoom: 13, zoomControl: true, preferCanvas: true });
+const map = L.map('map', { center: [41.157, -8.585], zoom: 13, zoomControl: true });
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
     attribution: '&copy; Esri, HERE, Garmin, FAO, NOAA, USGS, EPA',
     maxZoom: 16
@@ -639,6 +639,7 @@ let currentRouteLayer = null;
 let stopLayers        = [];
 let allLayers         = [];
 let selectedLine      = null;
+let selectedDirection = null; // 0 or 1, set when a variant button is picked
 let routeSource       = null; // 'sidebar' | 'bus'
 
 // Live bus state
@@ -874,83 +875,77 @@ function updateBusPanel() {
     document.getElementById('bus-panel-title').textContent       = info ? (info[0] + ' ↔ ' + info[1]) : selectedLine;
     document.getElementById('bus-panel-subtitle').textContent    = 'Autocarros em circulação';
 
-    // Group buses on this line by direction
-    const dir0 = [];
-    const dir1 = [];
+    // Only show buses in the selected direction
+    const buses = [];
     liveData.forEach(bus => {
         if (bus.routeId !== selectedLine) return;
-        if (bus.directionId === 0) dir0.push(bus);
-        else dir1.push(bus);
+        if (selectedDirection !== null && bus.directionId !== selectedDirection) return;
+        buses.push(bus);
     });
 
     const body = document.getElementById('bus-panel-body');
     body.innerHTML = '';
 
-    const total = dir0.length + dir1.length;
-    if (total === 0) {
+    if (buses.length === 0) {
         body.innerHTML = '<div id="bus-panel-empty">Nenhum autocarro em circulação</div>';
         panel.classList.add('visible');
         return;
     }
 
-    function renderGroup(buses, directionId) {
-        if (buses.length === 0) return;
-        const dest = info
-            ? (directionId === 0 ? info[1] : info[0])
-            : `Sentido ${directionId}`;
-        const lbl = document.createElement('div');
-        lbl.className = 'bus-panel-dir';
-        lbl.textContent = `→ ${dest}`;
-        body.appendChild(lbl);
+    const info  = ROUTES[selectedLine];
+    const dest  = info
+        ? (selectedDirection === 0 ? info[1] : selectedDirection === 1 ? info[0] : info[0] + ' ↔ ' + info[1])
+        : `Sentido ${selectedDirection}`;
+    const lbl = document.createElement('div');
+    lbl.className = 'bus-panel-dir';
+    lbl.textContent = `→ ${dest}`;
+    body.appendChild(lbl);
 
-        buses.forEach(bus => {
-            const row = document.createElement('div');
-            row.className = 'bus-panel-row';
+    buses.forEach(bus => {
+        const row = document.createElement('div');
+        row.className = 'bus-panel-row';
 
-            const dot = document.createElement('div');
-            dot.className = 'bus-panel-dot';
-            dot.style.background = color;
+        const dot = document.createElement('div');
+        dot.className = 'bus-panel-dot';
+        dot.style.background = color;
 
-            const right = document.createElement('div');
-            right.style.cssText = 'flex:1; min-width:0;';
+        const right = document.createElement('div');
+        right.style.cssText = 'flex:1; min-width:0;';
 
-            const idEl = document.createElement('div');
-            idEl.className = 'bus-panel-id';
-            idEl.textContent = bus.id;
+        const idEl = document.createElement('div');
+        idEl.className = 'bus-panel-id';
+        idEl.textContent = bus.id;
 
-            const nextStop = getNextStop(bus);
-            if (nextStop) {
-                const stopEl = document.createElement('div');
-                stopEl.className = 'bus-panel-nextstop';
-                stopEl.textContent = nextStop.name;
-                right.appendChild(idEl);
-                right.appendChild(stopEl);
-            } else {
-                right.appendChild(idEl);
+        const nextStop = getNextStop(bus);
+        if (nextStop) {
+            const stopEl = document.createElement('div');
+            stopEl.className = 'bus-panel-nextstop';
+            stopEl.textContent = nextStop.name;
+            right.appendChild(idEl);
+            right.appendChild(stopEl);
+        } else {
+            right.appendChild(idEl);
+        }
+
+        row.appendChild(dot);
+        row.appendChild(right);
+
+        row.addEventListener('click', () => {
+            if (busMarkers[bus.id]) {
+                map.flyTo(busMarkers[bus.id].getLatLng(), 16, { duration: 1 });
+                busMarkers[bus.id].openPopup();
             }
-
-            row.appendChild(dot);
-            row.appendChild(right);
-
-            row.addEventListener('click', () => {
-                if (busMarkers[bus.id]) {
-                    map.flyTo(busMarkers[bus.id].getLatLng(), 16, { duration: 1 });
-                    busMarkers[bus.id].openPopup();
-                }
-            });
-
-            body.appendChild(row);
         });
-    }
 
-    renderGroup(dir0, 0);
-    renderGroup(dir1, 1);
+        body.appendChild(row);
+    });
 
     panel.classList.add('visible');
 }
 
 function selectLine(line, renderListFn) {
     selectedLine = line;
+    selectedDirection = null;
     if (renderListFn) renderListFn(document.getElementById('search').value);
 
     const variants = Object.keys(SHAPES[line]);
@@ -971,7 +966,10 @@ function selectLine(line, renderListFn) {
             document.querySelectorAll('.vbtn').forEach(x => { x.classList.remove('active'); x.style.background = ''; });
             b.classList.add('active');
             b.style.background = color;
+            // Derive direction: "Dir 1 ..." → 0, "Dir 2 ..." → 1
+            selectedDirection = v.startsWith('Dir 2') ? 1 : 0;
             showRouteFromSidebar(line, v);
+            updateBusPanel();
         });
         btns.appendChild(b);
         if (i === 0) b.click();
