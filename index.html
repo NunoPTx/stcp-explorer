@@ -255,6 +255,25 @@
         /* ── Map ── */
         #map { flex: 1; height: 100vh; background: #111; }
 
+        /* ── Mobile fixes ── */
+        @media (max-width: 768px) {
+            /* Sidebar overlays the map instead of pushing it, fixing the black area */
+            body { position: relative; }
+            #sidebar {
+                position: absolute;
+                top: 0; left: 0; bottom: 0;
+                height: 100vh;
+                z-index: 1500;
+            }
+            #map { width: 100vw; }
+
+            /* Toggle button: when sidebar open, place it just at the sidebar edge */
+            #toggle-btn.open { left: calc(var(--panel-w) - 16px); }
+
+            /* Hide dashboard counter when sidebar is open */
+            body.sidebar-open #dashboard { display: none; }
+        }
+
         .leaflet-top.leaflet-left { top: 50px; }
 
         /* ── Dashboard ── */
@@ -513,7 +532,10 @@ toggleBtn.addEventListener('click', () => {
     toggleBtn.classList.toggle('open');
     toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '›' : '‹';
     busPanel.classList.toggle('sidebar-closed', sidebar.classList.contains('collapsed'));
+    document.body.classList.toggle('sidebar-open', !sidebar.classList.contains('collapsed'));
 });
+// Set initial state
+document.body.classList.add('sidebar-open');
 
 // ── Route data ──
 const ROUTES = {
