@@ -423,6 +423,19 @@
             text-overflow: ellipsis;
             max-width: 100px;
         }
+        .bus-panel-nextstop {
+            font-size: 10px;
+            color: var(--muted2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 1px;
+        }
+        .bus-panel-nextstop::before {
+            content: '⬦ ';
+            font-size: 9px;
+            color: var(--muted);
+        }
         #bus-panel-empty {
             padding: 16px 11px;
             font-size: 11px;
@@ -626,6 +639,7 @@ let currentRouteLayer = null;
 let stopLayers        = [];
 let allLayers         = [];
 let selectedLine      = null;
+let routeSource       = null; // 'sidebar' | 'bus'
 
 // Live bus state
 let busMarkers        = {};
@@ -679,6 +693,8 @@ async function loadStops() {
         const parts = row.split(',');
         return { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]), id: parts[2], name: parts[4] };
     }).filter(s => !isNaN(s.lat) && !isNaN(s.lng) && s.name);
+    // Clear route-stop cache so next panel render rebuilds with real stop data
+    Object.keys(routeStopCache).forEach(k => delete routeStopCache[k]);
     return cachedStops;
 }
 
@@ -776,6 +792,75 @@ async function buildSidebar() {
     });
 }
 
+// ── Next-stop helper ──
+// Cache: "line|directionId" -> ordered array of stop objects {lat,lng,name}
+const routeStopCache = {};
+
+function getRouteStops(line, directionId) {
+    const key = `${line}|${directionId}`;
+    if (routeStopCache[key]) return routeStopCache[key];
+    if (!cachedStops || !SHAPES[line]) return [];
+
+    // Pick the matching variant from SHAPES
+    // directionId 0 → "Dir 1 v0", directionId 1 → "Dir 2 v0" (same convention as sidebar)
+    const wantDir = directionId === 0 ? '1' : '2';
+    const variantKey = Object.keys(SHAPES[line]).find(k => k.startsWith(`Dir ${wantDir}`))
+                    || Object.keys(SHAPES[line])[0];
+    if (!variantKey) return [];
+
+    const coords = SHAPES[line][variantKey]; // [[lat,lng], ...]
+    // Build a set of route coord keys for fast lookup
+    const routeSet = new Set(coords.map(([la, lo]) => `${la},${lo}`));
+
+    // Filter stops that sit exactly on a route point, preserving route order
+    const ordered = [];
+    const seen    = new Set();
+    coords.forEach(([la, lo]) => {
+        const k = `${la},${lo}`;
+        if (!routeSet.has(k) || seen.has(k)) return;
+        const stop = cachedStops.find(s => s.lat === la && s.lng === lo);
+        if (stop) { ordered.push(stop); seen.add(k); }
+    });
+
+    routeStopCache[key] = ordered;
+    return ordered;
+}
+
+function dist2(lat1, lng1, lat2, lng2) {
+    const dlat = lat1 - lat2, dlng = (lng1 - lng2) * Math.cos(lat1 * Math.PI / 180);
+    return dlat * dlat + dlng * dlng;
+}
+
+function getNextStop(bus) {
+    if (!cachedStops) return null;
+    const stops = getRouteStops(bus.routeId, bus.directionId);
+    if (stops.length === 0) return null;
+
+    // 1. Find the stop closest to the bus position
+    let closestIdx = 0, closestD = Infinity;
+    stops.forEach((s, i) => {
+        const d = dist2(bus.lat, bus.lng, s.lat, s.lng);
+        if (d < closestD) { closestD = d; closestIdx = i; }
+    });
+
+    // 2. Decide if bus has already passed that stop or is still approaching.
+    //    Use the bearing to the *next* stop vs. the bus bearing.
+    //    If the closest stop is the last one, it's the destination — return it.
+    if (closestIdx >= stops.length - 1) return stops[stops.length - 1];
+
+    const next = stops[closestIdx + 1];
+    // Vector from closest stop toward next stop (proxy for route direction)
+    const routeDlat = next.lat - stops[closestIdx].lat;
+    const routeDlng = next.lng - stops[closestIdx].lng;
+    // Vector from closest stop to bus
+    const busDlat   = bus.lat - stops[closestIdx].lat;
+    const busDlng   = bus.lng - stops[closestIdx].lng;
+    // Dot product: positive → bus is ahead of (past) the closest stop
+    const dot = routeDlat * busDlat + routeDlng * busDlng;
+
+    return dot > 0 ? next : stops[closestIdx];
+}
+
 // ── Bus panel ──
 function updateBusPanel() {
     const panel = document.getElementById('bus-panel');
@@ -790,8 +875,8 @@ function updateBusPanel() {
     document.getElementById('bus-panel-subtitle').textContent    = 'Autocarros em circulação';
 
     // Group buses on this line by direction
-    const dir0 = []; // directionId === 0
-    const dir1 = []; // directionId === 1
+    const dir0 = [];
+    const dir1 = [];
     liveData.forEach(bus => {
         if (bus.routeId !== selectedLine) return;
         if (bus.directionId === 0) dir0.push(bus);
@@ -819,21 +904,34 @@ function updateBusPanel() {
         body.appendChild(lbl);
 
         buses.forEach(bus => {
-            const row  = document.createElement('div');
+            const row = document.createElement('div');
             row.className = 'bus-panel-row';
 
-            const dot  = document.createElement('div');
+            const dot = document.createElement('div');
             dot.className = 'bus-panel-dot';
             dot.style.background = color;
+
+            const right = document.createElement('div');
+            right.style.cssText = 'flex:1; min-width:0;';
 
             const idEl = document.createElement('div');
             idEl.className = 'bus-panel-id';
             idEl.textContent = bus.id;
 
-            row.appendChild(dot);
-            row.appendChild(idEl);
+            const nextStop = getNextStop(bus);
+            if (nextStop) {
+                const stopEl = document.createElement('div');
+                stopEl.className = 'bus-panel-nextstop';
+                stopEl.textContent = nextStop.name;
+                right.appendChild(idEl);
+                right.appendChild(stopEl);
+            } else {
+                right.appendChild(idEl);
+            }
 
-            // Click to pan to bus on map
+            row.appendChild(dot);
+            row.appendChild(right);
+
             row.addEventListener('click', () => {
                 if (busMarkers[bus.id]) {
                     map.flyTo(busMarkers[bus.id].getLatLng(), 16, { duration: 1 });
@@ -883,6 +981,7 @@ function selectLine(line, renderListFn) {
 
 function showRouteFromSidebar(line, variant) {
     clearRouteLayer();
+    routeSource = 'sidebar';
     const coords = SHAPES[line][variant];
     const color  = lineColorFast(line);
     currentRouteLayer = L.polyline(coords, {
@@ -905,6 +1004,7 @@ function showRouteFromSidebar(line, variant) {
 // ── Bus click route draw (from live map) ──
 async function drawRouteFromBus(line, directionId) {
     clearRouteLayer();
+    routeSource = 'bus';
     try {
         const csv = await loadShapesCSV();
         const lines = csv.split('\n');
@@ -948,6 +1048,7 @@ function clearRouteLayer() {
     if (currentRouteLayer) { map.removeLayer(currentRouteLayer); currentRouteLayer = null; }
     stopLayers.forEach(l => map.removeLayer(l));
     stopLayers = [];
+    routeSource = null;
 }
 
 // ── Live bus updates ──
@@ -1011,7 +1112,7 @@ async function updateBuses() {
                 }).addTo(map);
                 marker.bindPopup(popupContent);
                 marker.on('click', () => drawRouteFromBus(line, directionId));
-                marker.on('popupclose', () => clearRouteLayer());
+                marker.on('popupclose', () => { if (routeSource === 'bus') clearRouteLayer(); });
                 busMarkers[id] = marker;
             }
         });
