@@ -282,10 +282,12 @@
         /* ── Dashboard ── */
         #dashboard {
             position: absolute; top: 10px; right: 10px; z-index: 1000;
-            background: rgba(0,0,0,0.85); color: white; padding: 10px;
-            border-radius: 8px; font-family: 'FrutigerLTStdCn', sans-serif; border: 1px solid #444;
-            text-align: right; pointer-events: none;
+            background: var(--panel); color: var(--text); padding: 9px 12px;
+            border-radius: 8px; font-family: 'FrutigerLTStdCn', sans-serif;
+            border: 1px solid var(--border2); text-align: right; pointer-events: none;
         }
+        #counter { font-weight: 700; font-size: 15px; color: var(--text); }
+        #timestamp { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
         /* ── GPS button ── */
         .gps-button {
@@ -513,8 +515,8 @@
 <div id="map"></div>
 
 <div id="dashboard">
-    <div id="counter" style="font-weight:bold; font-size: 16px;">Connecting...</div>
-    <div id="timestamp" style="font-size:10px; color:#aaa; margin-top:2px;">Waiting for data...</div>
+    <div id="counter">Connecting...</div>
+    <div id="timestamp">Waiting for data...</div>
 </div>
 
 <div class="gps-button" onclick="centerMapOnUser()">
@@ -953,6 +955,7 @@ function updateBusPanel() {
         row.appendChild(right);
 
         row.addEventListener('click', () => {
+            drawRouteFromBus(bus.routeId, bus.directionId);
             if (busMarkers[bus.id]) {
                 map.flyTo(busMarkers[bus.id].getLatLng(), 16, { duration: 1 });
                 busMarkers[bus.id].openPopup();
