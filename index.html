@@ -345,12 +345,12 @@
         #bus-panel {
             position: absolute;
             top: 10px;
-            left: 380px;
+            left: 395px;
             z-index: 1500;
             background: var(--panel);
             border: 1px solid var(--border2);
             border-radius: 10px;
-            width: 210px;
+            width: 260px;
             max-height: calc(100vh - 80px);
             display: none;
             flex-direction: column;
@@ -1019,6 +1019,7 @@ function showRouteFromSidebar(line, variant) {
             const marker = L.circleMarker([stop.lat, stop.lng], {
                 radius: 4, color: '#fff', weight: 2, fillColor: color, fillOpacity: 1
             }).bindTooltip(stop.name, { permanent: false, direction: 'top' }).addTo(map);
+            marker.on('click', () => { window._clickingStop = true; setTimeout(() => { window._clickingStop = false; }, 300); });
             stopLayers.push(marker);
         });
     });
@@ -1061,6 +1062,7 @@ async function drawRouteFromBus(line, directionId) {
                 const marker = L.circleMarker([stop.lat, stop.lng], {
                     radius: 4, color: '#ffffff', weight: 2, fillColor: getBusColor(line), fillOpacity: 1
                 }).bindTooltip(stop.name, { direction: 'top' }).addTo(map);
+                marker.on('click', () => { window._clickingStop = true; setTimeout(() => { window._clickingStop = false; }, 300); });
                 stopLayers.push(marker);
             });
         }
@@ -1135,7 +1137,7 @@ async function updateBuses() {
                 }).addTo(map);
                 marker.bindPopup(popupContent);
                 marker.on('click', () => drawRouteFromBus(line, directionId));
-                marker.on('popupclose', () => { if (routeSource === 'bus') clearRouteLayer(); });
+                marker.on('popupclose', () => { if (routeSource === 'bus' && !window._clickingStop) clearRouteLayer(); });
                 busMarkers[id] = marker;
             }
         });
