@@ -35,7 +35,7 @@
 
         body {
             font-family: 'FrutigerLTStdCn', sans-serif;
-            background: #111;
+            background: var(--bg);
             color: var(--text);
             height: 100vh;
             display: flex;
@@ -248,8 +248,9 @@
         }
         #toggle-btn.open { left: 370px; }
         #map { flex: 1; height: 100vh; background: #111; }
+        .leaflet-top.leaflet-left { top: 50px; }
+        .leaflet-control-zoom { display: none; }
         @media (max-width: 768px) {
-            /* Sidebar overlays the map instead of pushing it, fixing the black area */
             body { position: relative; }
             #sidebar {
                 position: absolute;
@@ -258,17 +259,13 @@
                 z-index: 1500;
             }
             #map { width: 100vw; }
-
-            /* Toggle button: when sidebar open, place it just at the sidebar edge */
+            #toggle-btn {
+                width: 42px;
+                height: 42px;
+                font-size: 24px;
+            }
             #toggle-btn.open { left: calc(var(--panel-w) - 16px); }
-
-            /* Hide dashboard counter when sidebar is open */
             body.sidebar-open #dashboard { display: none; }
-        }
-
-        .leaflet-top.leaflet-left { top: 50px; }
-        @media (max-width: 768px) {
-            .leaflet-control-zoom { display: none; }
         }
         #dashboard {
             position: absolute; top: 10px; right: 10px; z-index: 1000;
@@ -279,8 +276,8 @@
         #counter { font-weight: 700; font-size: 15px; color: var(--text); }
         #timestamp { font-size: 10px; color: var(--muted); margin-top: 2px; }
         .gps-button {
-            position: absolute; bottom: 30px; right: 20px; z-index: 1000;
-            width: 45px; height: 45px; background: rgba(20,20,20,0.9);
+            position: absolute; bottom: max(30px, env(safe-area-inset-bottom) + 12px); right: 20px; z-index: 1000;
+            width: 45px; height: 45px; background: var(--panel);
             border: 1.5px solid #00f3ff; border-radius: 10px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 15px rgba(0,243,255,0.2); pointer-events: auto;
@@ -289,15 +286,25 @@
         .gps-button:active { transform: scale(0.9); background: #00f3ff; }
         .gps-button:active svg { stroke: #000; }
         #stops-btn {
-            position: absolute; bottom: 85px; right: 20px; z-index: 1000;
-            width: 45px; height: 45px; background: rgba(20,20,20,0.9);
+            position: absolute; bottom: max(85px, env(safe-area-inset-bottom) + 67px); right: 20px; z-index: 1000;
+            width: 45px; height: 45px; background: var(--panel);
             border: 1.5px solid var(--border2); border-radius: 10px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             pointer-events: auto; transition: all 0.2s ease;
         }
         #stops-btn:active { transform: scale(0.9); }
         #stops-btn.active { border-color: #00f3ff; box-shadow: 0 0 15px rgba(0,243,255,0.2); }
-        .user-location-marker {
+        .leaflet-popup-content-wrapper {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            font-family: 'FrutigerLTStdCn', sans-serif;
+        }
+        .leaflet-popup-tip { background: var(--panel); }
+        .leaflet-popup-content { margin: 8px 12px; font-size: 13px; }
+        .leaflet-popup-close-button { color: var(--muted) !important; }
             background: none !important;
             border: none !important;
             display: flex;
@@ -346,12 +353,12 @@
             display: none;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
             transition: left 0.25s;
             font-family: 'FrutigerLTStdCn', sans-serif;
         }
         #bus-panel.visible { display: flex; }
-        #bus-panel.sidebar-closed { left: 20px; }
+        #bus-panel.sidebar-closed { left: 50px; }
         @media (max-width: 768px) {
             #bus-panel.sidebar-closed { left: 50px; }
         }
@@ -1065,7 +1072,7 @@ async function updateBuses() {
             activeIds.add(id);
             let sentidoText = directionId;
             if (ROUTES[line]) { sentidoText = (directionId === 0) ? ROUTES[line][1] : ROUTES[line][0]; }
-            const popupContent = `<b>${line} | ${sentidoText} | ${id}</b>`;
+            const popupContent = `<span style="font-weight:700">${line}</span> <span style="color:var(--muted2)">${sentidoText}</span><br><span style="color:var(--muted);font-size:11px">${id}</span>`;
 
             if (busMarkers[id]) {
                 const marker = busMarkers[id];
