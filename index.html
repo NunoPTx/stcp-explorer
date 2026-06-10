@@ -345,12 +345,12 @@
         #bus-panel {
             position: absolute;
             top: 10px;
-            left: 395px;
+            left: 405px;
             z-index: 1500;
             background: var(--panel);
             border: 1px solid var(--border2);
             border-radius: 10px;
-            width: 260px;
+            width: 250px;
             max-height: calc(100vh - 80px);
             display: none;
             flex-direction: column;
@@ -675,6 +675,9 @@ let liveData          = []; // latest bus data, kept for panel refresh
 
 map.on('zoomstart', () => { isZooming = true; });
 map.on('zoomend',   () => { isZooming = false; });
+
+// Close route when tapping/clicking empty map
+map.on('click', () => { clearRouteLayer(); });
 
 // ── User location ──
 map.on('locationfound', (e) => {
@@ -1017,9 +1020,9 @@ function showRouteFromSidebar(line, variant) {
             const match = coords.some(([rlat, rlon]) => stop.lat === rlat && stop.lng === rlon);
             if (!match) return;
             const marker = L.circleMarker([stop.lat, stop.lng], {
-                radius: 4, color: '#fff', weight: 2, fillColor: color, fillOpacity: 1
+                radius: 4, color: '#fff', weight: 2, fillColor: color, fillOpacity: 1, interactive: true
             }).bindTooltip(stop.name, { permanent: false, direction: 'top' }).addTo(map);
-            marker.on('click', () => { window._clickingStop = true; setTimeout(() => { window._clickingStop = false; }, 300); });
+            marker.on('click', (e) => { L.DomEvent.stopPropagation(e); });
             stopLayers.push(marker);
         });
     });
@@ -1060,9 +1063,9 @@ async function drawRouteFromBus(line, directionId) {
             stops.forEach(stop => {
                 if (!routePointSet.has(`${stop.lat},${stop.lng}`)) return;
                 const marker = L.circleMarker([stop.lat, stop.lng], {
-                    radius: 4, color: '#ffffff', weight: 2, fillColor: getBusColor(line), fillOpacity: 1
+                    radius: 4, color: '#ffffff', weight: 2, fillColor: getBusColor(line), fillOpacity: 1, interactive: true
                 }).bindTooltip(stop.name, { direction: 'top' }).addTo(map);
-                marker.on('click', () => { window._clickingStop = true; setTimeout(() => { window._clickingStop = false; }, 300); });
+                marker.on('click', (e) => { L.DomEvent.stopPropagation(e); });
                 stopLayers.push(marker);
             });
         }
@@ -1137,7 +1140,6 @@ async function updateBuses() {
                 }).addTo(map);
                 marker.bindPopup(popupContent);
                 marker.on('click', () => drawRouteFromBus(line, directionId));
-                marker.on('popupclose', () => { if (routeSource === 'bus' && !window._clickingStop) clearRouteLayer(); });
                 busMarkers[id] = marker;
             }
         });
