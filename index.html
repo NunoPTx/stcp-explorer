@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>STCP Live</title>
+    <title>STCP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -42,8 +42,6 @@
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
         }
-
-        /* ── Sidebar ── */
         #sidebar {
             width: var(--panel-w);
             min-width: var(--panel-w);
@@ -230,8 +228,6 @@
         }
         input:checked + .slider { background: var(--c-blue); }
         input:checked + .slider:before { transform: translateX(13px); background: #fff; }
-
-        /* ── Toggle button ── */
         #toggle-btn {
             position: absolute;
             top: 10px;
@@ -251,11 +247,7 @@
             transition: left 0.25s;
         }
         #toggle-btn.open { left: 370px; }
-
-        /* ── Map ── */
         #map { flex: 1; height: 100vh; background: #111; }
-
-        /* ── Mobile fixes ── */
         @media (max-width: 768px) {
             /* Sidebar overlays the map instead of pushing it, fixing the black area */
             body { position: relative; }
@@ -278,8 +270,6 @@
         @media (max-width: 768px) {
             .leaflet-control-zoom { display: none; }
         }
-
-        /* ── Dashboard ── */
         #dashboard {
             position: absolute; top: 10px; right: 10px; z-index: 1000;
             background: var(--panel); color: var(--text); padding: 9px 12px;
@@ -288,8 +278,6 @@
         }
         #counter { font-weight: 700; font-size: 15px; color: var(--text); }
         #timestamp { font-size: 10px; color: var(--muted); margin-top: 2px; }
-
-        /* ── GPS button ── */
         .gps-button {
             position: absolute; bottom: 30px; right: 20px; z-index: 1000;
             width: 45px; height: 45px; background: rgba(20,20,20,0.9);
@@ -300,8 +288,15 @@
         }
         .gps-button:active { transform: scale(0.9); background: #00f3ff; }
         .gps-button:active svg { stroke: #000; }
-
-        /* ── User location marker ── */
+        #stops-btn {
+            position: absolute; bottom: 85px; right: 20px; z-index: 1000;
+            width: 45px; height: 45px; background: rgba(20,20,20,0.9);
+            border: 1.5px solid var(--border2); border-radius: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: auto; transition: all 0.2s ease;
+        }
+        #stops-btn:active { transform: scale(0.9); }
+        #stops-btn.active { border-color: #00f3ff; box-shadow: 0 0 15px rgba(0,243,255,0.2); }
         .user-location-marker {
             background: none !important;
             border: none !important;
@@ -322,8 +317,6 @@
             50% { transform: scale(1.2); opacity: 0.7; }
             100% { transform: scale(1); opacity: 1; }
         }
-
-        /* ── Bus markers ── */
         .bus-wrapper {
             position: relative; width: 40px; height: 40px;
             display: flex; align-items: center; justify-content: center;
@@ -340,12 +333,10 @@
         }
         @media (max-width: 768px) { .bus-wrapper { transform: scale(0.7); } }
         .leaflet-marker-icon { transition: none !important; }
-
-        /* ── Bus panel ── */
         #bus-panel {
             position: absolute;
             top: 10px;
-            left: 405px;
+            left: 410px;
             z-index: 1500;
             background: var(--panel);
             border: 1px solid var(--border2);
@@ -474,7 +465,7 @@
     <div id="sidebar-header">
         <div class="logo-mark" id="logo-mark"></div>
         <div id="header-text">
-            <h1>Visualizador Linhas</h1>
+            <h1>Mapa</h1>
             <p>Porto · 75 Linhas</p>
         </div>
     </div>
@@ -519,6 +510,13 @@
     <div id="timestamp">Waiting for data...</div>
 </div>
 
+<div id="stops-btn" title="Mostrar paragens">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+        <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+    </svg>
+</div>
+
 <div class="gps-button" onclick="centerMapOnUser()">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00f3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
@@ -528,7 +526,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 
-// ── Logo & sidebar toggle ──
 document.getElementById('logo-mark').innerHTML =
     '<img src="STCP_logo1_RGB.png" style="width:80px;height:auto;">';
 
@@ -542,10 +539,8 @@ toggleBtn.addEventListener('click', () => {
     busPanel.classList.toggle('sidebar-closed', sidebar.classList.contains('collapsed'));
     document.body.classList.toggle('sidebar-open', !sidebar.classList.contains('collapsed'));
 });
-// Set initial state
 document.body.classList.add('sidebar-open');
 
-// ── Route data ──
 const ROUTES = {
     "200": ["Bolhão", "Castelo do Queijo"],
     "401": ["Bolhão", "São Roque"],
@@ -620,7 +615,6 @@ const ROUTES = {
     "209": ["Pasteleira", "Prelada"],
 };
 
-// ── Color helpers ──
 function getBusColor(line) {
     if (!line) return '#ffffff';
     const s = line.toString().toUpperCase().trim();
@@ -646,40 +640,32 @@ function lineColorFast(s) {
     return '#555';
 }
 
-// ── Map init ──
 const map = L.map('map', { center: [41.157, -8.585], zoom: 13, zoomControl: true });
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
     attribution: '&copy; Esri, HERE, Garmin, FAO, NOAA, USGS, EPA',
     maxZoom: 16
 }).addTo(map);
 
-// ── Shared state ──
 let isZooming    = false;
-let cachedShapes = null; // raw CSV text
-let SHAPES       = {};   // parsed: line -> variantKey -> [[lat,lon],...]
-let cachedStops  = null; // parsed stop objects
+let cachedShapes = null;
+let SHAPES       = {};
+let cachedStops  = null;
 
-// Route visualizer state
 let currentRouteLayer = null;
 let stopLayers        = [];
 let allLayers         = [];
 let selectedLine      = null;
-let selectedDirection = null; // 0 or 1, set when a variant button is picked
-let routeSource       = null; // 'sidebar' | 'bus'
+let selectedDirection = null;
+let routeSource       = null;
 
-// Live bus state
 let busMarkers        = {};
 let userMarker        = null;
 let userPos           = null;
-let liveData          = []; // latest bus data, kept for panel refresh
+let liveData          = [];
 
 map.on('zoomstart', () => { isZooming = true; });
 map.on('zoomend',   () => { isZooming = false; });
 
-// Close route when tapping/clicking empty map
-map.on('click', () => { clearRouteLayer(); });
-
-// ── User location ──
 map.on('locationfound', (e) => {
     userPos = e.latlng;
     if (!userMarker) {
@@ -706,7 +692,6 @@ function centerMapOnUser() {
     }
 }
 
-// ── Data loaders ──
 async function loadShapesCSV() {
     if (cachedShapes !== null) return cachedShapes;
     const r = await fetch('shapes.txt', { cache: 'no-store' });
@@ -722,7 +707,6 @@ async function loadStops() {
         const parts = row.split(',');
         return { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]), id: parts[2], name: parts[4] };
     }).filter(s => !isNaN(s.lat) && !isNaN(s.lng) && s.name);
-    // Clear route-stop cache so next panel render rebuilds with real stop data
     Object.keys(routeStopCache).forEach(k => delete routeStopCache[k]);
     return cachedStops;
 }
@@ -752,7 +736,6 @@ async function ensureSHAPES() {
     }
 }
 
-// ── Route visualizer (sidebar) ──
 async function buildSidebar() {
     await ensureSHAPES();
 
@@ -821,8 +804,6 @@ async function buildSidebar() {
     });
 }
 
-// ── Next-stop helper ──
-// Cache: "line|directionId" -> ordered array of stop objects {lat,lng,name}
 const routeStopCache = {};
 
 function getRouteStops(line, directionId) {
@@ -830,18 +811,14 @@ function getRouteStops(line, directionId) {
     if (routeStopCache[key]) return routeStopCache[key];
     if (!cachedStops || !SHAPES[line]) return [];
 
-    // Pick the matching variant from SHAPES
-    // directionId 0 → "Dir 1 v0", directionId 1 → "Dir 2 v0" (same convention as sidebar)
     const wantDir = directionId === 0 ? '1' : '2';
     const variantKey = Object.keys(SHAPES[line]).find(k => k.startsWith(`Dir ${wantDir}`))
                     || Object.keys(SHAPES[line])[0];
     if (!variantKey) return [];
 
-    const coords = SHAPES[line][variantKey]; // [[lat,lng], ...]
-    // Build a set of route coord keys for fast lookup
+    const coords = SHAPES[line][variantKey];
     const routeSet = new Set(coords.map(([la, lo]) => `${la},${lo}`));
 
-    // Filter stops that sit exactly on a route point, preserving route order
     const ordered = [];
     const seen    = new Set();
     coords.forEach(([la, lo]) => {
@@ -865,32 +842,24 @@ function getNextStop(bus) {
     const stops = getRouteStops(bus.routeId, bus.directionId);
     if (stops.length === 0) return null;
 
-    // 1. Find the stop closest to the bus position
     let closestIdx = 0, closestD = Infinity;
     stops.forEach((s, i) => {
         const d = dist2(bus.lat, bus.lng, s.lat, s.lng);
         if (d < closestD) { closestD = d; closestIdx = i; }
     });
 
-    // 2. Decide if bus has already passed that stop or is still approaching.
-    //    Use the bearing to the *next* stop vs. the bus bearing.
-    //    If the closest stop is the last one, it's the destination — return it.
     if (closestIdx >= stops.length - 1) return stops[stops.length - 1];
 
     const next = stops[closestIdx + 1];
-    // Vector from closest stop toward next stop (proxy for route direction)
     const routeDlat = next.lat - stops[closestIdx].lat;
     const routeDlng = next.lng - stops[closestIdx].lng;
-    // Vector from closest stop to bus
     const busDlat   = bus.lat - stops[closestIdx].lat;
     const busDlng   = bus.lng - stops[closestIdx].lng;
-    // Dot product: positive → bus is ahead of (past) the closest stop
     const dot = routeDlat * busDlat + routeDlng * busDlng;
 
     return dot > 0 ? next : stops[closestIdx];
 }
 
-// ── Bus panel ──
 function updateBusPanel() {
     const panel = document.getElementById('bus-panel');
     if (!selectedLine) { panel.classList.remove('visible'); return; }
@@ -903,7 +872,6 @@ function updateBusPanel() {
     document.getElementById('bus-panel-title').textContent       = info ? (info[0] + ' ↔ ' + info[1]) : selectedLine;
     document.getElementById('bus-panel-subtitle').textContent    = 'Autocarros em circulação';
 
-    // Only show buses in the selected direction
     const buses = [];
     liveData.forEach(bus => {
         if (bus.routeId !== selectedLine) return;
@@ -994,7 +962,6 @@ function selectLine(line, renderListFn) {
             document.querySelectorAll('.vbtn').forEach(x => { x.classList.remove('active'); x.style.background = ''; });
             b.classList.add('active');
             b.style.background = color;
-            // Derive direction: "Dir 1 ..." → 0, "Dir 2 ..." → 1
             selectedDirection = v.startsWith('Dir 2') ? 1 : 0;
             showRouteFromSidebar(line, v);
             updateBusPanel();
@@ -1020,15 +987,13 @@ function showRouteFromSidebar(line, variant) {
             const match = coords.some(([rlat, rlon]) => stop.lat === rlat && stop.lng === rlon);
             if (!match) return;
             const marker = L.circleMarker([stop.lat, stop.lng], {
-                radius: 4, color: '#fff', weight: 2, fillColor: color, fillOpacity: 1, interactive: true
+                radius: 4, color: '#fff', weight: 2, fillColor: color, fillOpacity: 1
             }).bindTooltip(stop.name, { permanent: false, direction: 'top' }).addTo(map);
-            marker.on('click', (e) => { L.DomEvent.stopPropagation(e); });
             stopLayers.push(marker);
         });
     });
 }
 
-// ── Bus click route draw (from live map) ──
 async function drawRouteFromBus(line, directionId) {
     clearRouteLayer();
     routeSource = 'bus';
@@ -1063,9 +1028,8 @@ async function drawRouteFromBus(line, directionId) {
             stops.forEach(stop => {
                 if (!routePointSet.has(`${stop.lat},${stop.lng}`)) return;
                 const marker = L.circleMarker([stop.lat, stop.lng], {
-                    radius: 4, color: '#ffffff', weight: 2, fillColor: getBusColor(line), fillOpacity: 1, interactive: true
+                    radius: 4, color: '#ffffff', weight: 2, fillColor: getBusColor(line), fillOpacity: 1
                 }).bindTooltip(stop.name, { direction: 'top' }).addTo(map);
-                marker.on('click', (e) => { L.DomEvent.stopPropagation(e); });
                 stopLayers.push(marker);
             });
         }
@@ -1079,35 +1043,15 @@ function clearRouteLayer() {
     routeSource = null;
 }
 
-// ── Live bus updates ──
 async function updateBuses() {
     if (isZooming) return;
     try {
         let data;
-        let workerOk = false;
         try {
             const r = await fetch('https://stcp-proxy.npeixoto2007.workers.dev', { signal: AbortSignal.timeout(5000) });
             const json = await r.json();
-            if (Array.isArray(json) && json.length > 0) { workerOk = true; data = json; }
-        } catch (e) { console.warn('Worker failed:', e); }
-
-        if (!workerOk) {
-            console.warn('Worker empty or failed, falling back to FIWARE...');
-            try {
-                const r = await fetch('https://broker.fiware.urbanplatform.portodigital.pt/v2/entities?q=vehicleType==bus&limit=1000', { signal: AbortSignal.timeout(8000) });
-                const entities = await r.json();
-                if (Array.isArray(entities) && entities.length > 0) {
-                    data = entities.map(e => ({
-                        id:          e.fleetVehicleId?.value ?? e.id,
-                        lat:         e.location?.value?.coordinates?.[1] ?? null,
-                        lng:         e.location?.value?.coordinates?.[0] ?? null,
-                        bearing:     e.heading?.value ?? 0,
-                        routeId:     (e.annotations?.value?.find(a => a.startsWith('stcp:route:'))?.split(':')[2]) ?? '',
-                        directionId: parseInt(e.annotations?.value?.find(a => a.startsWith('stcp:sentido:'))?.split(':')[1]) || 0,
-                    }));
-                }
-            } catch (e) { console.warn('FIWARE also failed:', e); }
-        }
+            if (Array.isArray(json) && json.length > 0) data = json;
+        } catch (e) {}
 
         if (!data || data.length === 0) {
             document.getElementById('counter').innerText = 'No data';
@@ -1121,7 +1065,7 @@ async function updateBuses() {
             activeIds.add(id);
             let sentidoText = directionId;
             if (ROUTES[line]) { sentidoText = (directionId === 0) ? ROUTES[line][1] : ROUTES[line][0]; }
-            const popupContent = `<b>${line} | ${sentidoText} | ${id}${!workerOk ? ' <span style="color:#00ff00">*</span>' : ''}</b>`;
+            const popupContent = `<b>${line} | ${sentidoText} | ${id}</b>`;
 
             if (busMarkers[id]) {
                 const marker = busMarkers[id];
@@ -1140,6 +1084,7 @@ async function updateBuses() {
                 }).addTo(map);
                 marker.bindPopup(popupContent);
                 marker.on('click', () => drawRouteFromBus(line, directionId));
+                marker.on('popupclose', () => { if (routeSource === 'bus') clearRouteLayer(); });
                 busMarkers[id] = marker;
             }
         });
@@ -1150,7 +1095,6 @@ async function updateBuses() {
         liveData = data;
         updateBusPanel();
         document.getElementById('counter').innerText  = `Buses: ${data.length}`;
-        // Use the timestamp from the data if present (Unix seconds), else fall back to now
         const rawTs = data[0]?.timestamp ?? data[0]?.ts ?? data[0]?.time ?? null;
         let tsDisplay;
         if (rawTs && typeof rawTs === 'number' && rawTs > 1000000000) {
@@ -1164,10 +1108,37 @@ async function updateBuses() {
     } catch (e) { console.error(e); }
 }
 
-// ── Boot ──
 buildSidebar();
 updateBuses();
 setInterval(updateBuses, 2000);
+
+let allStopsVisible = false;
+let allStopMarkers = [];
+
+async function toggleAllStops() {
+    const btn = document.getElementById('stops-btn');
+    if (allStopsVisible) {
+        allStopMarkers.forEach(m => map.removeLayer(m));
+        allStopMarkers = [];
+        allStopsVisible = false;
+        btn.classList.remove('active');
+        btn.querySelector('svg').style.stroke = 'var(--muted2)';
+        return;
+    }
+    allStopsVisible = true;
+    btn.classList.add('active');
+    btn.querySelector('svg').style.stroke = '#00f3ff';
+    const stops = await loadStops();
+    stops.forEach(stop => {
+        const m = L.circleMarker([stop.lat, stop.lng], {
+            radius: 3, color: '#fff', weight: 1.5, fillColor: '#555', fillOpacity: 1, interactive: true
+        }).bindTooltip(stop.name, { direction: 'top' }).addTo(map);
+        m.on('click', (e) => { L.DomEvent.stopPropagation(e); });
+        allStopMarkers.push(m);
+    });
+}
+
+document.getElementById('stops-btn').addEventListener('click', toggleAllStops);
 
 </script>
 </body>
