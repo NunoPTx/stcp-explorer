@@ -274,8 +274,12 @@
             border-radius: 8px; font-family: 'FrutigerLTStdCn', sans-serif;
             border: 1px solid var(--border2); text-align: right; pointer-events: none;
         }
-        #counter { font-weight: 700; font-size: 15px; color: var(--text); }
-        #timestamp { font-size: 10px; color: var(--muted); margin-top: 2px; }
+        @media (max-width: 768px) {
+            #dashboard {
+                transition: opacity 0.4s ease;
+            }
+            #dashboard.hidden { opacity: 0; pointer-events: none; }
+        }
         .gps-button {
             position: absolute; bottom: max(30px, env(safe-area-inset-bottom) + 12px); right: 20px; z-index: 1000;
             width: 45px; height: 45px; background: var(--panel);
@@ -339,7 +343,7 @@
             top: 0; left: 0; transition: transform 0.5s ease-in-out;
             z-index: 1; pointer-events: none;
         }
-        @media (max-width: 768px) { .bus-wrapper { transform: scale(0.7); } }
+        @media (max-width: 768px) { .bus-wrapper { transform: scale(1.1); } }
         .leaflet-marker-icon { transition: none !important; }
         #bus-panel {
             position: absolute;
@@ -839,30 +843,9 @@ async function fetchStopArrivals(stop) {
     try {
         const r = await fetch(`https://stcp-proxy.npeixoto2007.workers.dev?stop=${stop.id}`);
         const data = await r.json();
-        const arrivals = Array.isArray(data) ? data : (data.arrivals || data.results || data.data || []);
-        if (!arrivals.length) {
-            body.innerHTML = '<div id="stop-panel-empty">Sem autocarros previstos</div>';
-            return;
-        }
-        body.innerHTML = '';
-        arrivals.forEach(a => {
-            const row = document.createElement('div');
-            row.className = 'stop-arrival-row';
-            const mins = a.arrival_minutes ?? a.minutes ?? a.eta_minutes ?? null;
-            const timeText = mins === 0 ? 'A chegar' : mins != null ? `${mins} min` : '–';
-            const routeId = a.route_short_name || a.line || a.route || '';
-            const routeInfo = ROUTES[routeId];
-            const dest = a.trip_headsign || a.headsign || a.destination_name || a.destination || a.direction
-                || (routeInfo ? routeInfo[0] + ' ↔ ' + routeInfo[1] : '');
-            const color = lineColorFast(routeId) || 'var(--border2)';
-            row.innerHTML = `
-                <div class="stop-arrival-badge" style="background:${color}">${routeId}</div>
-                <div class="stop-arrival-dest">${dest}</div>
-                <div class="stop-arrival-time">${timeText}</div>`;
-            body.appendChild(row);
-        });
+        renderArrivals(data, stop);
     } catch(e) {
-        body.innerHTML = '<div id="stop-panel-empty">Erro ao carregar dados</div>';
+        body.innerHTML = `<div id="stop-panel-empty">Erro ao carregar dados <button onclick="fetchStopArrivals(_currentStop)" style="margin-left:8px;background:none;border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit;font-size:11px">↻ Retry</button></div>`;
     }
 }
 
@@ -1259,6 +1242,7 @@ setInterval(updateBuses, 2000);
 
 document.getElementById('stop-panel-close').addEventListener('click', () => {
     document.getElementById('stop-panel').classList.remove('visible');
+    clearRouteLayer();
 });
 document.getElementById('stop-panel-reload').addEventListener('click', () => {
     if (_currentStop) fetchStopArrivals(_currentStop);
@@ -1266,6 +1250,105 @@ document.getElementById('stop-panel-reload').addEventListener('click', () => {
 document.getElementById('bus-panel-close').addEventListener('click', () => {
     busPanel.classList.remove('visible');
 });
+
+// ── Stop arrivals cache ──
+const _stopCache = {};
+const _CACHE_TTL = 20000;
+const _origFetchStopArrivals = fetchStopArrivals;
+fetchStopArrivals = async function(stop) {
+    const now = Date.now();
+    if (_stopCache[stop.id] && now - _stopCache[stop.id].ts < _CACHE_TTL) {
+        renderArrivals(_stopCache[stop.id].data, stop);
+        return;
+    }
+    const body = document.getElementById('stop-panel-body');
+    body.innerHTML = '<div id="stop-panel-empty">A carregar...</div>';
+    try {
+        const r = await fetch(`https://stcp-proxy.npeixoto2007.workers.dev?stop=${stop.id}`);
+        const data = await r.json();
+        _stopCache[stop.id] = { ts: Date.now(), data };
+        renderArrivals(data, stop);
+    } catch(e) {
+        body.innerHTML = `<div id="stop-panel-empty">Erro ao carregar dados <button onclick="fetchStopArrivals(_currentStop)" style="margin-left:8px;background:none;border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit;font-size:11px">↻ Retry</button></div>`;
+    }
+};
+
+function renderArrivals(data, stop) {
+    const body = document.getElementById('stop-panel-body');
+    const arrivals = Array.isArray(data) ? data : (data.arrivals || data.results || data.data || []);
+    if (!arrivals.length) {
+        body.innerHTML = '<div id="stop-panel-empty">Sem autocarros previstos</div>';
+        return;
+    }
+    body.innerHTML = '';
+    arrivals.forEach(a => {
+        const row = document.createElement('div');
+        row.className = 'stop-arrival-row';
+        const mins = a.arrival_minutes ?? a.minutes ?? a.eta_minutes ?? null;
+        const timeText = mins === 0 ? 'A chegar' : mins != null ? `${mins} min` : '–';
+        const routeId = a.route_short_name || a.line || a.route || '';
+        const routeInfo = ROUTES[routeId];
+        const dest = a.trip_headsign || a.headsign || a.destination_name || a.destination || a.direction
+            || (routeInfo ? routeInfo[0] + ' ↔ ' + routeInfo[1] : '');
+        const color = lineColorFast(routeId) || 'var(--border2)';
+        const badge = document.createElement('div');
+        badge.className = 'stop-arrival-badge';
+        badge.style.background = color;
+        badge.style.cursor = 'pointer';
+        badge.title = `Ver linha ${routeId}`;
+        badge.textContent = routeId;
+        badge.addEventListener('click', (e) => {
+            e.stopPropagation();
+            stopPanel.classList.remove('visible');
+            selectLine(routeId, null);
+            showRouteFromSidebar(routeId);
+        });
+        const destEl = document.createElement('div');
+        destEl.className = 'stop-arrival-dest';
+        destEl.textContent = dest;
+        const timeEl = document.createElement('div');
+        timeEl.className = 'stop-arrival-time';
+        timeEl.textContent = timeText;
+        row.appendChild(badge);
+        row.appendChild(destEl);
+        row.appendChild(timeEl);
+        body.appendChild(row);
+    });
+}
+
+// ── Auto-refresh stop panel every 30s ──
+let _stopRefreshTimer = null;
+let _stopRefreshSecondsEl = null;
+const _origOpenStopPanel = openStopPanel;
+openStopPanel = async function(stop) {
+    if (_stopRefreshTimer) clearInterval(_stopRefreshTimer);
+    await _origOpenStopPanel(stop);
+    let secondsSince = 0;
+    _stopRefreshTimer = setInterval(() => {
+        secondsSince++;
+        const sub = document.getElementById('stop-panel-name');
+        if (sub) sub.title = `Atualizado há ${secondsSince}s`;
+        if (secondsSince >= 30) {
+            secondsSince = 0;
+            delete _stopCache[stop.id];
+            fetchStopArrivals(stop);
+        }
+    }, 1000);
+};
+document.getElementById('stop-panel-close').addEventListener('click', () => {
+    if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
+}, true);
+
+// ── Dashboard auto-hide on mobile ──
+if (window.innerWidth <= 768) {
+    const dash = document.getElementById('dashboard');
+    let dashTimer = setTimeout(() => dash.classList.add('hidden'), 3000);
+    map.on('click', () => {
+        dash.classList.remove('hidden');
+        clearTimeout(dashTimer);
+        dashTimer = setTimeout(() => dash.classList.add('hidden'), 3000);
+    });
+}
 
 let allStopsVisible = false;
 let allStopMarkers = [];
