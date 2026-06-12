@@ -876,8 +876,8 @@ function renderArrivals(data, stop) {
         badge.addEventListener('click', (e) => {
             e.stopPropagation();
             stopPanel.classList.remove('visible');
+            if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
             selectLine(routeId, null);
-            showRouteFromSidebar(routeId);
         });
         const destEl = document.createElement('div');
         destEl.className = 'stop-arrival-dest';
@@ -1031,7 +1031,6 @@ function getNextStop(bus) {
 function updateBusPanel() {
     const panel = document.getElementById('bus-panel');
     if (!selectedLine) { panel.classList.remove('visible'); return; }
-    if (stopPanel.classList.contains('visible')) return;
 
     const info  = ROUTES[selectedLine];
     const color = lineColorFast(selectedLine);
@@ -1111,6 +1110,11 @@ function updateBusPanel() {
 function selectLine(line, renderListFn) {
     selectedLine = line;
     selectedDirection = null;
+    // Close stop panel if open
+    if (stopPanel.classList.contains('visible')) {
+        stopPanel.classList.remove('visible');
+        if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
+    }
     if (renderListFn) renderListFn(document.getElementById('search').value);
 
     const variants = Object.keys(SHAPES[line]);
@@ -1165,6 +1169,11 @@ function showRouteFromSidebar(line, variant) {
 }
 
 async function drawRouteFromBus(line, directionId) {
+    // Close stop panel if open
+    if (stopPanel.classList.contains('visible')) {
+        stopPanel.classList.remove('visible');
+        if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
+    }
     clearRouteLayer();
     routeSource = 'bus';
     try {
@@ -1291,6 +1300,13 @@ document.getElementById('stop-panel-reload').addEventListener('click', () => {
 });
 document.getElementById('bus-panel-close').addEventListener('click', () => {
     busPanel.classList.remove('visible');
+    selectedLine = null;
+    selectedDirection = null;
+    clearRouteLayer();
+    // Deselect active route item in sidebar
+    document.querySelectorAll('.route-item.active').forEach(el => el.classList.remove('active'));
+    document.getElementById('variant-bar').classList.remove('visible');
+    document.getElementById('variant-btns').innerHTML = '';
 });
 
 // ── Auto-refresh stop panel every 15s ──
