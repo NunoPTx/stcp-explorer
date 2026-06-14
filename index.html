@@ -32,6 +32,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        button, input, select, textarea { font-family: inherit; }
 
         body {
             font-family: 'FrutigerLTStdCn', sans-serif;
@@ -70,6 +71,7 @@
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
+        .logo-mark img { width: 80px; height: auto; }
         #header-text h1 {
             font-size: 15px;
             font-weight: 700;
@@ -91,7 +93,6 @@
             border: 1px solid var(--border2);
             border-radius: 7px;
             padding: 8px 10px 8px 32px;
-            font-family: inherit;
             font-size: 13px;
             outline: none;
             transition: border-color 0.15s;
@@ -188,7 +189,6 @@
             border: 1px solid var(--border2);
             border-radius: 5px;
             padding: 4px 10px;
-            font-family: inherit;
             font-size: 11px;
             font-weight: 500;
             cursor: pointer;
@@ -196,7 +196,7 @@
             line-height: 1.4;
         }
         .vbtn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
-        .vbtn.active { color: #fff; font-weight: 600; border-color: transparent; }
+        .vbtn.active { color: #fff; font-weight: 600; border-color: transparent; background: var(--vbtn-color, var(--c-blue)); }
 
         #all-wrap {
             padding: 10px 12px;
@@ -271,7 +271,7 @@
         #dashboard {
             position: absolute; top: 10px; right: 10px; z-index: 1000;
             background: var(--panel); color: var(--text); padding: 9px 12px;
-            border-radius: 8px; font-family: 'FrutigerLTStdCn', sans-serif;
+            border-radius: 8px;
             border: 1px solid var(--border2); text-align: right; pointer-events: none;
         }
         @media (max-width: 768px) {
@@ -309,7 +309,8 @@
         }
         .leaflet-popup-tip { background: var(--panel); }
         .leaflet-popup-content { margin: 8px 12px; font-size: 13px; }
-        .leaflet-popup-close-button { color: var(--muted) !important; }
+        .leaflet-popup-close-button {
+            color: var(--muted) !important;
             background: none !important;
             border: none !important;
             display: flex;
@@ -337,11 +338,13 @@
             width: 14px; height: 14px;
             border-radius: 50%; border: 2px solid white;
             box-shadow: 0 0 4px rgba(0,0,0,0.6); z-index: 2;
+            background-color: var(--bus-color);
         }
         .bus-direction {
             position: absolute; width: 100%; height: 100%;
             top: 0; left: 0; transition: transform 0.5s ease-in-out;
             z-index: 1; pointer-events: none;
+            transform: rotate(var(--bus-bearing, 0deg));
         }
         @media (max-width: 768px) { .bus-wrapper { transform: scale(0.9); } }
         .leaflet-marker-icon { transition: none !important; }
@@ -360,7 +363,6 @@
             overflow: hidden;
             box-shadow: 0 4px 24px rgba(0,0,0,0.4);
             transition: left 0.25s;
-            font-family: 'FrutigerLTStdCn', sans-serif;
         }
         #bus-panel.visible { display: flex; }
         #bus-panel.sidebar-closed { left: 50px; }
@@ -483,7 +485,6 @@
             overflow: hidden;
             box-shadow: 0 4px 24px rgba(0,0,0,0.4);
             transition: left 0.25s;
-            font-family: 'FrutigerLTStdCn', sans-serif;
         }
         #stop-panel.visible { display: flex; }
         #stop-panel.sidebar-closed { left: 50px; }
@@ -522,7 +523,6 @@
         .stop-arrival-row {
             display: flex; align-items: center; gap: 8px;
             padding: 6px 11px; border-bottom: 1px solid var(--border);
-            font-family: 'FrutigerLTStdCn', sans-serif;
         }
         .stop-arrival-row:last-child { border-bottom: none; }
         .stop-arrival-badge {
@@ -532,6 +532,22 @@
         }
         .stop-arrival-dest { font-size: 11px; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .stop-arrival-time { font-size: 12px; font-weight: 700; color: #00f3ff; flex-shrink: 0; }
+        .panel-info-col { flex: 1; min-width: 0; }
+        .retry-btn {
+            margin-left: 8px;
+            background: none;
+            border: 1px solid var(--border2);
+            color: var(--text);
+            border-radius: 4px;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .route-arrow.circular { margin: 0 5px 0 0; }
+        .bus-popup-line { font-weight: 700; }
+        .bus-popup-dir { color: var(--muted2); }
+        .bus-popup-id { color: var(--muted); font-size: 11px; }
+        .clickable { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -570,7 +586,7 @@
 <div id="bus-panel">
     <div id="bus-panel-header">
         <div id="bus-panel-badge"></div>
-        <div style="flex:1;min-width:0">
+        <div class="panel-info-col">
             <div id="bus-panel-title"></div>
             <div id="bus-panel-subtitle"></div>
         </div>
@@ -584,7 +600,7 @@
 <div id="stop-panel">
     <div id="stop-panel-header">
         <div id="stop-panel-badge"></div>
-        <div style="flex:1;min-width:0">
+        <div class="panel-info-col">
             <div id="stop-panel-name"></div>
         </div>
         <button id="stop-panel-reload" title="Atualizar">↻</button>
@@ -609,7 +625,7 @@
     </svg>
 </div>
 
-<div class="gps-button" onclick="centerMapOnUser()">
+<div class="gps-button" id="gps-btn" title="Centrar na minha localização">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00f3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
     </svg>
@@ -619,7 +635,7 @@
 <script>
 
 document.getElementById('logo-mark').innerHTML =
-    '<img src="STCP_logo1_RGB.png" style="width:80px;height:auto;">';
+    '<img src="STCP_logo1_RGB.png" alt="STCP">';
 
 const toggleBtn = document.getElementById('toggle-btn');
 const sidebar   = document.getElementById('sidebar');
@@ -790,6 +806,7 @@ function centerMapOnUser() {
         alert("A aguardar sinal GPS...");
     }
 }
+document.getElementById('gps-btn').addEventListener('click', centerMapOnUser);
 
 async function loadShapesCSV() {
     if (cachedShapes !== null) return cachedShapes;
@@ -845,7 +862,7 @@ async function fetchStopArrivals(stop) {
         const data = await r.json();
         renderArrivals(data, stop);
     } catch(e) {
-        body.innerHTML = `<div id="stop-panel-empty">Erro ao carregar dados <button onclick="fetchStopArrivals(_currentStop)" style="margin-left:8px;background:none;border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit;font-size:11px">↻ Retry</button></div>`;
+        body.innerHTML = `<div id="stop-panel-empty">Erro ao carregar dados <button class="retry-btn" data-action="retry-stop">↻ Retry</button></div>`;
     }
 }
 
@@ -868,9 +885,8 @@ function renderArrivals(data, stop) {
             || (routeInfo ? routeInfo[0] + ' ↔ ' + routeInfo[1] : '');
         const color = lineColorFast(routeId) || 'var(--border2)';
         const badge = document.createElement('div');
-        badge.className = 'stop-arrival-badge';
+        badge.className = 'stop-arrival-badge clickable';
         badge.style.background = color;
-        badge.style.cursor = 'pointer';
         badge.title = `Ver linha ${routeId}`;
         badge.textContent = routeId;
         badge.addEventListener('click', (e) => {
@@ -892,6 +908,8 @@ function renderArrivals(data, stop) {
     });
 }
 
+let _stopRefreshTimer = null;
+
 async function openStopPanel(stop) {
     _currentStop = stop;
     const panel = document.getElementById('stop-panel');
@@ -902,6 +920,18 @@ async function openStopPanel(stop) {
     document.getElementById('stop-panel-badge').textContent = stop.id;
     panel.classList.add('visible');
     await fetchStopArrivals(stop);
+
+    if (_stopRefreshTimer) clearInterval(_stopRefreshTimer);
+    let secondsSince = 0;
+    _stopRefreshTimer = setInterval(() => {
+        secondsSince++;
+        const sub = document.getElementById('stop-panel-name');
+        if (sub) sub.title = `Atualizado há ${secondsSince}s`;
+        if (secondsSince >= 15) {
+            secondsSince = 0;
+            fetchStopArrivals(stop);
+        }
+    }, 1000);
 }
 
 async function buildSidebar() {
@@ -942,7 +972,7 @@ async function buildSidebar() {
             const circularSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 0 1 7.39 16.74M12 2v4M19.39 18.74l-3.06-1.47M12 22a10 10 0 0 1-7.39-16.74M12 22v-4M4.61 5.26l3.06 1.47" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
             const isCircular  = origin.startsWith('Circular');
             if (isCircular) {
-                lbl.innerHTML = `<span class="route-arrow" style="margin:0 5px 0 0">${circularSvg}</span><span class="route-endpoint">${dest || origin}</span>`;
+                lbl.innerHTML = `<span class="route-arrow circular">${circularSvg}</span><span class="route-endpoint">${dest || origin}</span>`;
             } else {
                 lbl.innerHTML = `<span class="route-endpoint">${origin || line}</span><span class="route-arrow">${arrowSvg}</span><span class="route-endpoint">${dest || ''}</span>`;
             }
@@ -1073,7 +1103,7 @@ function updateBusPanel() {
         dot.style.background = color;
 
         const right = document.createElement('div');
-        right.style.cssText = 'flex:1; min-width:0;';
+        right.className = 'panel-info-col';
 
         const idEl = document.createElement('div');
         idEl.className = 'bus-panel-id';
@@ -1110,7 +1140,6 @@ function updateBusPanel() {
 function selectLine(line, renderListFn) {
     selectedLine = line;
     selectedDirection = null;
-    // Close stop panel if open
     if (stopPanel.classList.contains('visible')) {
         stopPanel.classList.remove('visible');
         if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
@@ -1132,9 +1161,9 @@ function selectLine(line, renderListFn) {
         else if (v === 'Dir 2 v0' && info) b.textContent = info[0];
         else                               b.textContent = v;
         b.addEventListener('click', () => {
-            document.querySelectorAll('.vbtn').forEach(x => { x.classList.remove('active'); x.style.background = ''; });
+            document.querySelectorAll('.vbtn').forEach(x => x.classList.remove('active'));
             b.classList.add('active');
-            b.style.background = color;
+            b.style.setProperty('--vbtn-color', color);
             selectedDirection = v.startsWith('Dir 2') ? 1 : 0;
             showRouteFromSidebar(line, v);
             updateBusPanel();
@@ -1169,7 +1198,6 @@ function showRouteFromSidebar(line, variant) {
 }
 
 async function drawRouteFromBus(line, directionId) {
-    // Close stop panel if open
     if (stopPanel.classList.contains('visible')) {
         stopPanel.classList.remove('visible');
         if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
@@ -1245,7 +1273,7 @@ async function updateBuses() {
             activeIds.add(id);
             let sentidoText = directionId;
             if (ROUTES[line]) { sentidoText = (directionId === 0) ? ROUTES[line][1] : ROUTES[line][0]; }
-            const popupContent = `<span style="font-weight:700">${line}</span> <span style="color:var(--muted2)">${sentidoText}</span><br><span style="color:var(--muted);font-size:11px">${id}</span>`;
+            const popupContent = `<span class="bus-popup-line">${line}</span> <span class="bus-popup-dir">${sentidoText}</span><br><span class="bus-popup-id">${id}</span>`;
 
             if (busMarkers[id]) {
                 const marker = busMarkers[id];
@@ -1254,11 +1282,11 @@ async function updateBuses() {
                 const iconWrapper = marker.getElement();
                 if (iconWrapper) {
                     const svg = iconWrapper.querySelector('.bus-direction');
-                    if (svg) svg.style.transform = `rotate(${bearing}deg)`;
+                    if (svg) svg.style.setProperty('--bus-bearing', `${bearing}deg`);
                 }
             } else {
                 const color   = getBusColor(line);
-                const iconHtml = `<div class="bus-wrapper"><div class="bus-dot" style="background-color: ${color}"></div><svg class="bus-direction" style="transform: rotate(${bearing}deg)" viewBox="0 0 40 40"><path d="M20 4l5 8H15z" fill="white" /></svg></div>`;
+                const iconHtml = `<div class="bus-wrapper"><div class="bus-dot" style="--bus-color: ${color}"></div><svg class="bus-direction" style="--bus-bearing: ${bearing}deg" viewBox="0 0 40 40"><path d="M20 4l5 8H15z" fill="white" /></svg></div>`;
                 const marker  = L.marker([lat, lon], {
                     icon: L.divIcon({ className: 'bus-custom-icon', html: iconHtml, iconSize: [40, 40], iconAnchor: [20, 20] })
                 }).addTo(map);
@@ -1294,42 +1322,26 @@ setInterval(updateBuses, 2000);
 document.getElementById('stop-panel-close').addEventListener('click', () => {
     document.getElementById('stop-panel').classList.remove('visible');
     clearRouteLayer();
+    if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
 });
 document.getElementById('stop-panel-reload').addEventListener('click', () => {
     if (_currentStop) fetchStopArrivals(_currentStop);
+});
+document.getElementById('stop-panel-body').addEventListener('click', (e) => {
+    if (e.target.closest('[data-action="retry-stop"]') && _currentStop) {
+        fetchStopArrivals(_currentStop);
+    }
 });
 document.getElementById('bus-panel-close').addEventListener('click', () => {
     busPanel.classList.remove('visible');
     selectedLine = null;
     selectedDirection = null;
     clearRouteLayer();
-    // Deselect active route item in sidebar
     document.querySelectorAll('.route-item.active').forEach(el => el.classList.remove('active'));
     document.getElementById('variant-bar').classList.remove('visible');
     document.getElementById('variant-btns').innerHTML = '';
 });
 
-// ── Auto-refresh stop panel every 15s ──
-let _stopRefreshTimer = null;
-const _origOpenStopPanel = openStopPanel;
-openStopPanel = async function(stop) {
-    if (_stopRefreshTimer) clearInterval(_stopRefreshTimer);
-    await _origOpenStopPanel(stop);
-    let secondsSince = 0;
-    _stopRefreshTimer = setInterval(() => {
-        secondsSince++;
-        const sub = document.getElementById('stop-panel-name');
-        if (sub) sub.title = `Atualizado há ${secondsSince}s`;
-        if (secondsSince >= 15) {
-            secondsSince = 0;
-            fetchStopArrivals(stop);
-        }
-    }, 1000);
-};
-document.getElementById('stop-panel-close').addEventListener('click', () => {
-    if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
-}, true);
-// ── Dashboard auto-hide on mobile ──
 if (window.innerWidth <= 768) {
     const dash = document.getElementById('dashboard');
     let dashTimer = setTimeout(() => dash.classList.add('hidden'), 3000);
