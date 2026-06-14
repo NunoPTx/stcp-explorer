@@ -544,7 +544,20 @@
             font-size: 11px;
         }
         .route-arrow.circular { margin: 0 5px 0 0; }
-        .bus-popup-line { font-weight: 700; }
+        .bus-popup-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 20px;
+            border-radius: 4px;
+            padding: 0 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            vertical-align: middle;
+            background-color: var(--bus-color);
+        }
         .bus-popup-dir { color: var(--muted2); }
         .bus-popup-id { color: var(--muted); font-size: 11px; }
         .clickable { cursor: pointer; }
@@ -1273,7 +1286,9 @@ async function updateBuses() {
             activeIds.add(id);
             let sentidoText = directionId;
             if (ROUTES[line]) { sentidoText = (directionId === 0) ? ROUTES[line][1] : ROUTES[line][0]; }
-            const popupContent = `<span class="bus-popup-line">${line}</span> <span class="bus-popup-dir">${sentidoText}</span><br><span class="bus-popup-id">${id}</span>`;
+            const lineColor = getBusColor(line);
+            const lineLabel = line === '107' ? 'ZC' : line;
+            const popupContent = `<span class="bus-popup-badge" style="--bus-color: ${lineColor}">${lineLabel}</span> <span class="bus-popup-dir">${sentidoText}</span><br><span class="bus-popup-id">${id}</span>`;
 
             if (busMarkers[id]) {
                 const marker = busMarkers[id];
