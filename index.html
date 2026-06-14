@@ -558,7 +558,7 @@
             vertical-align: middle;
             background-color: var(--bus-color);
         }
-        .bus-popup-dir { color: var(--muted2); }
+        .bus-popup-dir { color: var(--muted2); font-weight: 600; }
         .bus-popup-id { color: var(--muted); font-size: 11px; }
         .clickable { cursor: pointer; }
     </style>
@@ -757,14 +757,14 @@ function getBusColor(line) {
 }
 
 function lineColorFast(s) {
-    if (s.endsWith('M')) return '#111111';
+    if (s.endsWith('M')) return '#000000';
     const n = parseInt(s);
-    if (n >= 100 && n <= 499) return '#1a7ec8';
-    if (n >= 500 && n <= 599) return '#d4a800';
-    if (n >= 600 && n <= 699) return '#009a00';
-    if (n >= 700 && n <= 799) return '#d42020';
-    if (n >= 800 && n <= 899) return '#8833dd';
-    if (n >= 900 && n <= 999) return '#e06800';
+    if (n >= 100 && n <= 499) return '#187ec2';
+    if (n >= 500 && n <= 599) return '#fcd116';
+    if (n >= 600 && n <= 699) return '#00ac00';
+    if (n >= 700 && n <= 799) return '#ff0000';
+    if (n >= 800 && n <= 899) return '#a347ff';
+    if (n >= 900 && n <= 999) return '#ff7900';
     return '#555';
 }
 
@@ -893,20 +893,22 @@ function renderArrivals(data, stop) {
         const mins = a.arrival_minutes ?? a.minutes ?? a.eta_minutes ?? null;
         const timeText = mins === 0 ? 'A chegar' : mins != null ? `${mins} min` : '–';
         const routeId = a.route_short_name || a.line || a.route || '';
-        const routeInfo = ROUTES[routeId];
+        const isZC = routeId === '107' || routeId.toString().toUpperCase() === 'ZC';
+        const colorKey = isZC ? '107' : routeId;
+        const routeInfo = ROUTES[colorKey];
         const dest = a.trip_headsign || a.headsign || a.destination_name || a.destination || a.direction
             || (routeInfo ? routeInfo[0] + ' ↔ ' + routeInfo[1] : '');
-        const color = lineColorFast(routeId) || 'var(--border2)';
+        const color = lineColorFast(colorKey) || 'var(--border2)';
         const badge = document.createElement('div');
         badge.className = 'stop-arrival-badge clickable';
         badge.style.background = color;
-        badge.title = `Ver linha ${routeId}`;
-        badge.textContent = routeId;
+        badge.title = `Ver linha ${colorKey}`;
+        badge.textContent = isZC ? 'ZC' : routeId;
         badge.addEventListener('click', (e) => {
             e.stopPropagation();
             stopPanel.classList.remove('visible');
             if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
-            selectLine(routeId, null);
+            selectLine(colorKey, null);
         });
         const destEl = document.createElement('div');
         destEl.className = 'stop-arrival-dest';
