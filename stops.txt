@@ -986,7 +986,6 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.171524,-8.542862,FNZ4,FNZ4,Fânzeres (metro),GDM1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=FNZ4
 41.161090,-8.647460,FOCO1,FOCO1,Foco,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=FOCO1
 41.160730,-8.646920,FOCO2,FOCO2,Foco,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=FOCO2
-41.161033,-8.647932,FOCO3,FOCO3,Foco,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=FOCO3
 41.233888,-8.623902,FOR1,FOR1,Fórum,MAI1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=FOR1
 41.233788,-8.624164,FOR2,FOR2,Fórum,MAI1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=FOR2
 41.177395,-8.589849,FOUT2,FOUT2,Fonte Do Outeiro,PRT3,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=FOUT2
@@ -1849,9 +1848,6 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.152370,-8.627780,PRG6,PRG6,Pr. Da Galiza,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PRG6
 41.155866,-8.671349,PRI1,PRI1,Pr. Do Império,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PRI1
 41.155616,-8.671293,PRI4,PRI4,Pr. Do Império,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PRI4
-41.173095,-8.688229,PRIS,PRIS,Primavera Sound,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PRIS
-41.173430,-8.689265,PRIS2,PRIS2,Primavera Sound,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PRIS2
-41.149530,-8.610240,PRISAL,PRISAL,Primavera Sound Aliados,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PRISAL
 41.127554,-8.632082,PRMR1,PRMR1,Pr. M. Silva Reis,VNG1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PRMR1
 41.127882,-8.631928,PRMR2,PRMR2,Pr. M. Silva Reis,VNG1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PRMR2
 41.230237,-8.575949,PRMV1,PRMV1,Primavera,MAI4,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PRMV1
