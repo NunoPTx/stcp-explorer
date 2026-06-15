@@ -334,6 +334,12 @@
             position: relative; width: 40px; height: 40px;
             display: flex; align-items: center; justify-content: center;
         }
+        .metro-marker {
+            font-size: 22px;
+            line-height: 1;
+            text-shadow: 0 0 6px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
         .bus-dot {
             width: 14px; height: 14px;
             border-radius: 50%; border: 2px solid white;
@@ -1312,8 +1318,45 @@ async function updateBuses() {
                 marker.on('click', () => drawRouteFromBus(line, directionId));
                 busMarkers[id] = marker;
             }
-        });
-
+        });  
+            let metroMarkers = {};
+            
+            async function updateMetros() {
+                if (isZooming) return;
+                try {
+                    const r = await fetch('https://stcp-proxy.npeixoto2007.workers.dev/?metro', { signal: AbortSignal.timeout(5000) });
+                    const data = await r.json();
+                    if (!Array.isArray(data)) return;
+            
+                    const activeIds = new Set();
+                    data.forEach(m => {
+                        const { id, lat, lng: lon, routeId, directionId } = m;
+                        if (!lat || !lon) return;
+                        const key = id ?? `${routeId}-${directionId}-${lat}-${lon}`;
+                        activeIds.add(key);
+            
+                        if (metroMarkers[key]) {
+                            metroMarkers[key].setLatLng([lat, lon]);
+                        } else {
+                            const marker = L.marker([lat, lon], {
+                                icon: L.divIcon({
+                                    className: 'metro-marker',
+                                    html: '🚇',
+                                    iconSize: [22, 22],
+                                    iconAnchor: [11, 11]
+                                }),
+                                interactive: false
+                            }).addTo(map);
+                            metroMarkers[key] = marker;
+                        }
+                    });
+            
+                    for (const key in metroMarkers) {
+                        if (!activeIds.has(key)) { map.removeLayer(metroMarkers[key]); delete metroMarkers[key]; }
+                    }
+                } catch (e) { console.error(e); }
+            }
+        
         for (const id in busMarkers) {
             if (!activeIds.has(id)) { map.removeLayer(busMarkers[id]); delete busMarkers[id]; }
         }
@@ -1335,7 +1378,9 @@ async function updateBuses() {
 
 buildSidebar();
 updateBuses();
+updateMetros();
 setInterval(updateBuses, 2000);
+setInterval(updateMetros, 2000);
 
 document.getElementById('stop-panel-close').addEventListener('click', () => {
     document.getElementById('stop-panel').classList.remove('visible');
