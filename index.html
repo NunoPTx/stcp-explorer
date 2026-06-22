@@ -872,7 +872,7 @@ async function fetchStopArrivals(stop) {
     const body = document.getElementById('stop-panel-body');
     body.innerHTML = '<div id="stop-panel-empty">A carregar...</div>';
     try {
-        const r = await fetch(`https://stcp-proxy.npeixoto2007.workers.dev?stop=${stop.id}`);
+        const r = await fetch(`https://stcp-proxy-production.up.railway.app/?stop=${stop.id}`);
         const data = await r.json();
         renderArrivals(data, stop);
     } catch(e) {
@@ -1272,7 +1272,7 @@ async function updateBuses() {
     try {
         let data;
         try {
-            const r = await fetch('https://stcp-proxy.npeixoto2007.workers.dev', { signal: AbortSignal.timeout(5000) });
+            const r = await fetch('https://stcp-proxy-production.up.railway.app', { signal: AbortSignal.timeout(5000) });
             const json = await r.json();
             if (Array.isArray(json) && json.length > 0) data = json;
         } catch (e) {}
