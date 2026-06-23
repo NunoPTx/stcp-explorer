@@ -13,5 +13,5 @@ STCP bus network explorer with routes, stops and live positions via GTFS static 
 ## What it shows
 
 - Routes and variants
-- Stops and schedules
+- Stops and realtime
 - Real-time bus positions via [stcp-proxy](https://github.com/NunoPTx/stcp-proxy)
