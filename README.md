@@ -1,10 +1,10 @@
-# stcp-gtfs-analyzer
+# stcp-explorer
 
 STCP bus network explorer with routes, stops and live positions via GTFS static data and stcp-proxy.
 
 **Live:** https://nunoptx.github.io/stcp-gtfs-analyzer
 
-## Source
+## Content
 
 - `index.html` — main app
 - `shapes.txt` — route shapes (GTFS)
