@@ -38,6 +38,7 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.213718,-8.592829,1RGH1,1RGH1,R.general Humberto Delgado,MAI4,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1RGH1
 41.213702,-8.593404,1RGH2,1RGH2,R. General Humberto Delgado,MAI4,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1RGH2
 41.136045,-8.533121,1RI1,1RI1,Rua Da Igreja,GDM1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1RI1
+41.146255,-8.618461,1RTR,1RTR,R. Restauração,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1RTR
 41.144713,-8.610836,1SBNT,1SBNT,S.bento,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1SBNT
 41.166573,-8.649752,1SJB1,1SJB1,S. João Brito,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1SJB1
 41.166810,-8.649780,1SJB2,1SJB2,S. Joao Brito,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1SJB2
@@ -2180,7 +2181,6 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.168667,-8.559167,SCT2,SCT2,S. Caetano,GDM1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=SCT2
 41.170134,-8.560137,SCT3,SCT3,S. Caetano,GDM1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=SCT3
 41.169485,-8.560244,SCT4,SCT4,S. Caetano,GDM1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=SCT4
-41.146750,-8.609167,SDB5,SDB5,Sá Da Bandeira,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=SDB5
 41.190083,-8.675889,SDMC3,SDMC3,Sendim (cemitério),MTS1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=SDMC3
 41.189868,-8.675389,SDMC4,SDMC4,Sendim (cemitério),MTS1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=SDMC4
 41.164563,-8.637004,SDP1,SDP1,Sidónio Pais,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=SDP1
