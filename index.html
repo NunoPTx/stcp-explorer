@@ -883,47 +883,84 @@ async function fetchStopArrivals(stop) {
 function renderArrivals(data, stop) {
     const body = document.getElementById('stop-panel-body');
     const arrivals = Array.isArray(data) ? data : (data.arrivals || data.results || data.data || []);
+
     if (!arrivals.length) {
         body.innerHTML = '<div id="stop-panel-empty">Nenhum autocarro em circulação</div>';
         return;
     }
+
     body.innerHTML = '';
+
     arrivals.forEach(a => {
         const row = document.createElement('div');
         row.className = 'stop-arrival-row';
+
         const mins = a.arrival_minutes ?? a.minutes ?? a.eta_minutes ?? null;
         const timeText = mins === 0 ? 'A chegar' : mins != null ? `${mins} min` : '–';
+
         const routeId = a.route_short_name || a.line || a.route || '';
         const isZC = routeId === '107' || routeId.toString().toUpperCase() === 'ZC';
         const colorKey = isZC ? '107' : routeId;
+
         const routeInfo = ROUTES[colorKey];
+
         const dest = a.trip_headsign || a.headsign || a.destination_name || a.destination || a.direction
             || (routeInfo ? routeInfo[0] + ' ↔ ' + routeInfo[1] : '');
+
         const color = lineColorFast(colorKey) || 'var(--border2)';
+
         const badge = document.createElement('div');
         badge.className = 'stop-arrival-badge clickable';
         badge.style.background = color;
         badge.title = `Ver linha ${colorKey}`;
         badge.textContent = isZC ? 'ZC' : routeId;
+
         badge.addEventListener('click', (e) => {
             e.stopPropagation();
             stopPanel.classList.remove('visible');
-            if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
+
+            if (_stopRefreshTimer) {
+                clearInterval(_stopRefreshTimer);
+                _stopRefreshTimer = null;
+            }
+
             selectLine(colorKey, null);
         });
+
+        const infoWrap = document.createElement('div');
+        infoWrap.style.flex = '1';
+        infoWrap.style.minWidth = '0';
+
         const destEl = document.createElement('div');
         destEl.className = 'stop-arrival-dest';
         destEl.textContent = dest;
+
+        infoWrap.appendChild(destEl);
+
+        const delay = a.delay_minutes;
+
+        if (typeof delay === 'number' && Math.round(Math.abs(delay)) >= 2) {
+            const delayEl = document.createElement('div');
+            delayEl.style.fontSize = '10px';
+            delayEl.style.marginTop = '2px';
+            delayEl.style.fontWeight = '600';
+            delayEl.style.color = delay > 0 ? '#ff4444' : '#00d060';
+            delayEl.textContent = `${delay > 0 ? '+' : ''}${Math.round(delay)} min`;
+
+            infoWrap.appendChild(delayEl);
+        }
+
         const timeEl = document.createElement('div');
         timeEl.className = 'stop-arrival-time';
         timeEl.textContent = timeText;
+
         row.appendChild(badge);
-        row.appendChild(destEl);
+        row.appendChild(infoWrap);
         row.appendChild(timeEl);
+
         body.appendChild(row);
     });
 }
-
 let _stopRefreshTimer = null;
 
 async function openStopPanel(stop) {
