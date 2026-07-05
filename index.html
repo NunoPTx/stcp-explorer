@@ -283,12 +283,12 @@
         .gps-button {
             position: absolute; bottom: max(30px, env(safe-area-inset-bottom) + 12px); right: 20px; z-index: 1000;
             width: 45px; height: 45px; background: var(--panel);
-            border: 1.5px solid #00f3ff; border-radius: 10px; cursor: pointer;
+            border: 1.5px solid var(--c-blue); border-radius: 10px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 15px rgba(0,243,255,0.2); pointer-events: auto;
+            box-shadow: 0 0 15px rgba(26,126,200,0.2); pointer-events: auto;
             transition: all 0.2s ease;
         }
-        .gps-button:active { transform: scale(0.9); background: #00f3ff; }
+        .gps-button:active { transform: scale(0.9); background: var(--c-blue); }
         .gps-button:active svg { stroke: #000; }
         #stops-btn {
             position: absolute; bottom: max(85px, env(safe-area-inset-bottom) + 67px); right: 20px; z-index: 1000;
@@ -298,7 +298,7 @@
             pointer-events: auto; transition: all 0.2s ease;
         }
         #stops-btn:active { transform: scale(0.9); }
-        #stops-btn.active { border-color: #00f3ff; box-shadow: 0 0 15px rgba(0,243,255,0.2); }
+        #stops-btn.active { border-color: var(--c-blue); box-shadow: 0 0 15px rgba(26,126,200,0.2); }
         .leaflet-popup-content-wrapper {
             background: var(--panel);
             color: var(--text);
@@ -319,9 +319,9 @@
         }
         .neon-box {
             width: 12px; height: 12px;
-            border: 2px solid #00f3ff;
-            background: rgba(0, 243, 255, 0.4);
-            box-shadow: 0 0 10px #00f3ff, inset 0 0 4px #00f3ff;
+            border: 2px solid var(--c-blue);
+            background: rgba(26, 126, 200, 0.4);
+            box-shadow: 0 0 10px var(--c-blue), inset 0 0 4px var(--c-blue);
             animation: pulse-neon 2s infinite;
             box-sizing: border-box;
         }
@@ -503,7 +503,7 @@
             min-width: 38px; height: 22px; border-radius: 5px;
             background: var(--border2);
             display: flex; align-items: center; justify-content: center;
-            font-size: 10px; font-weight: 700; color: var(--muted2); flex-shrink: 0;
+            font-size: 11px; font-weight: 700; color: var(--muted2); flex-shrink: 0;
         }
         #stop-panel-name {
             font-size: 11px; font-weight: 600; color: var(--text);
@@ -528,10 +528,12 @@
         .stop-arrival-badge {
             min-width: 36px; height: 20px; border-radius: 4px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
+            font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
         }
         .stop-arrival-dest { font-size: 11px; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .stop-arrival-time { font-size: 12px; font-weight: 700; color: #00f3ff; flex-shrink: 0; }
+        .stop-arrival-time { font-size: 12px; font-weight: 700; color: var(--c-blue); flex-shrink: 0; }
+        .stop-arrival-time-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex-shrink: 0; }
+        .stop-arrival-delay { font-size: 9px; font-weight: 600; line-height: 1; }
         .panel-info-col { flex: 1; min-width: 0; }
         .retry-btn {
             margin-left: 8px;
@@ -627,8 +629,8 @@
 <div id="map"></div>
 
 <div id="dashboard">
-    <div id="counter">Connecting...</div>
-    <div id="timestamp">Waiting for data...</div>
+    <div id="counter">A ligar...</div>
+    <div id="timestamp">A aguardar dados...</div>
 </div>
 
 <div id="stops-btn" title="Mostrar paragens">
@@ -639,7 +641,7 @@
 </div>
 
 <div class="gps-button" id="gps-btn" title="Centrar na minha localização">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00f3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--c-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
     </svg>
 </div>
@@ -917,9 +919,21 @@ function renderArrivals(data, stop) {
         const timeEl = document.createElement('div');
         timeEl.className = 'stop-arrival-time';
         timeEl.textContent = timeText;
+        const timeWrap = document.createElement('div');
+        timeWrap.className = 'stop-arrival-time-wrap';
+        timeWrap.appendChild(timeEl);
+        const delayRaw = a.delay_minutes;
+        if (delayRaw !== undefined && delayRaw !== null) {
+            const delay = Math.round(delayRaw);
+            const delayEl = document.createElement('div');
+            delayEl.className = 'stop-arrival-delay';
+            delayEl.style.color = delay > 0 ? 'var(--c-red)' : delay < 0 ? 'var(--c-green)' : 'var(--muted)';
+            delayEl.textContent = delay > 0 ? `+${delay} min` : `${delay} min`;
+            timeWrap.appendChild(delayEl);
+        }
         row.appendChild(badge);
         row.appendChild(destEl);
-        row.appendChild(timeEl);
+        row.appendChild(timeWrap);
         body.appendChild(row);
     });
 }
@@ -1076,6 +1090,7 @@ function getNextStop(bus) {
 
 function updateBusPanel() {
     const panel = document.getElementById('bus-panel');
+    if (stopPanel.classList.contains('visible')) { panel.classList.remove('visible'); return; }
     if (!selectedLine) { panel.classList.remove('visible'); return; }
 
     const info  = ROUTES[selectedLine];
@@ -1278,7 +1293,7 @@ async function updateBuses() {
         } catch (e) {}
 
         if (!data || data.length === 0) {
-            document.getElementById('counter').innerText = 'No data';
+            document.getElementById('counter').innerText = 'Sem dados';
             return;
         }
 
@@ -1385,7 +1400,7 @@ async function toggleAllStops() {
     }
     allStopsVisible = true;
     btn.classList.add('active');
-    btn.querySelector('svg').style.stroke = '#00f3ff';
+    btn.querySelector('svg').style.stroke = 'var(--c-blue)';
     const stops = await loadStops();
     stops.forEach(stop => {
         const m = L.circleMarker([stop.lat, stop.lng], {
