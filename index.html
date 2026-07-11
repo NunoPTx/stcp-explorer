@@ -915,7 +915,7 @@ async function getProjectedEtas(stopId, routeCode, liveScheduledEtas) {
     const entries = idx[stopId] || [];
     const nowSec = secondsSinceMidnight();
     const upcoming = entries
-        .filter(e => e.route === routeCode && e.dCode === dCode && e.seconds > nowSec)
+        .filter(e => e.route === routeCode && e.dCode === dCode && e.seconds > nowSec && (e.seconds - nowSec) < 3600)
         .map(e => Math.round((e.seconds - nowSec) / 60))
         .sort((a, b) => a - b);
     const projected = [];
@@ -1027,6 +1027,17 @@ async function renderArrivals(data, stop) {
             liveEtasByRoute[colorKey].push(Math.round(mins - delayRaw));
         }
     });
+    try {
+        const idx = await loadStopTimesIndex();
+        const allRoutesAtStop = new Set((idx[stop.id] || []).map(e => e.route));
+        allRoutesAtStop.forEach(routeCode => {
+            if (routesSeen[routeCode]) return;
+            const routeInfo = ROUTES[routeCode];
+            const dest = routeInfo ? routeInfo[0] + ' ↔ ' + routeInfo[1] : '';
+            const color = lineColorFast(routeCode) || 'var(--border2)';
+            routesSeen[routeCode] = { color, dest, badgeText: routeCode };
+        });
+    } catch (e) {}
     for (const [colorKey, info] of Object.entries(routesSeen)) {
         let projected = [];
         try {
