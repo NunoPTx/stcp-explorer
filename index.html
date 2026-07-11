@@ -673,7 +673,6 @@ toggleBtn.addEventListener('click', () => {
 document.body.classList.add('sidebar-open');
 
 const ROUTES = {
-//  "200": ["Bolhão", "Castelo do Queijo"],
     "200": ["Bolhão", "Praça Cidade Salvador"],
     "401": ["Bolhão", "São Roque"],
     "502": ["Bolhão", "Matosinhos (Mercado)"],
@@ -900,22 +899,24 @@ async function loadStopTimesIndex() {
         const tripId = cols[1];
         const stopId = cols[4];
         const pipeParts = tripId.split('|');
-        const route = pipeParts[0].split('_')[0];
+        const routeParts = pipeParts[0].split('_');
+        const route = routeParts[0];
+        const dir = routeParts[2] || '1';
         const dCode = pipeParts[2];
         if (!idx[stopId]) idx[stopId] = [];
-        idx[stopId].push({ route, dCode, seconds: gtfsTimeToSeconds(cols[2]) });
+        idx[stopId].push({ route, dir, dCode, seconds: gtfsTimeToSeconds(cols[2]) });
     }
     cachedStopTimesIndex = idx;
     return idx;
 }
 
-async function getProjectedEtas(stopId, routeCode, liveScheduledEtas) {
+async function getProjectedEtas(stopId, routeCode, dir, liveScheduledEtas) {
     const idx = await loadStopTimesIndex();
     const dCode = await getTodayDCode();
     const entries = idx[stopId] || [];
     const nowSec = secondsSinceMidnight();
     const upcoming = entries
-        .filter(e => e.route === routeCode && e.dCode === dCode && e.seconds > nowSec && (e.seconds - nowSec) < 3600)
+        .filter(e => e.route === routeCode && (dir === null || e.dir === dir) && e.dCode === dCode && e.seconds > nowSec && (e.seconds - nowSec) < 3600)
         .map(e => Math.round((e.seconds - nowSec) / 60))
         .sort((a, b) => a - b);
     const projected = [];
@@ -966,14 +967,39 @@ async function fetchStopArrivals(stop) {
     }
 }
 
+function appendProjectedRow(body, colorKey, info, eta) {
+    const row = document.createElement('div');
+    row.className = 'stop-arrival-row';
+    const badge = document.createElement('div');
+    badge.className = 'stop-arrival-badge clickable';
+    badge.style.background = info.color;
+    badge.title = `Ver linha ${colorKey}`;
+    badge.textContent = info.badgeText;
+    badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        stopPanel.classList.remove('visible');
+        if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
+        selectLine(colorKey, null);
+    });
+    const destEl = document.createElement('div');
+    destEl.className = 'stop-arrival-dest';
+    destEl.textContent = info.dest;
+    const timeEl = document.createElement('div');
+    timeEl.className = 'stop-arrival-time-projected';
+    timeEl.textContent = eta <= 0 ? 'A chegar' : `${eta} min`;
+    const timeWrap = document.createElement('div');
+    timeWrap.className = 'stop-arrival-time-wrap';
+    timeWrap.appendChild(timeEl);
+    row.appendChild(badge);
+    row.appendChild(destEl);
+    row.appendChild(timeWrap);
+    body.appendChild(row);
+}
+
 async function renderArrivals(data, stop) {
     const body = document.getElementById('stop-panel-body');
     const arrivals = Array.isArray(data) ? data : (data.arrivals || data.results || data.data || []);
-    if (!arrivals.length) {
-        body.innerHTML = '<div id="stop-panel-empty">Nenhum autocarro em circulação</div>';
-        return;
-    }
-    body.innerHTML = '';
+    body.innerHTML = arrivals.length ? '' : '<div id="stop-panel-empty">Nenhum autocarro em circulação</div>';
     const liveEtasByRoute = {};
     const routesSeen = {};
     arrivals.forEach(a => {
@@ -1027,50 +1053,32 @@ async function renderArrivals(data, stop) {
             liveEtasByRoute[colorKey].push(Math.round(mins - delayRaw));
         }
     });
+    const scheduleOnlyRoutes = {};
     try {
         const idx = await loadStopTimesIndex();
-        const allRoutesAtStop = new Set((idx[stop.id] || []).map(e => e.route));
-        allRoutesAtStop.forEach(routeCode => {
+        const allRouteDirsAtStop = new Set((idx[stop.id] || []).map(e => `${e.route}|${e.dir}`));
+        allRouteDirsAtStop.forEach(key => {
+            const [routeCode, dir] = key.split('|');
             if (routesSeen[routeCode]) return;
             const routeInfo = ROUTES[routeCode];
-            const dest = routeInfo ? routeInfo[0] + ' ↔ ' + routeInfo[1] : '';
+            const dest = routeInfo ? (dir === '2' ? routeInfo[0] : routeInfo[1]) : '';
             const color = lineColorFast(routeCode) || 'var(--border2)';
-            routesSeen[routeCode] = { color, dest, badgeText: routeCode };
+            scheduleOnlyRoutes[key] = { routeCode, dir, color, dest, badgeText: routeCode };
         });
     } catch (e) {}
     for (const [colorKey, info] of Object.entries(routesSeen)) {
         let projected = [];
         try {
-            projected = await getProjectedEtas(stop.id, colorKey, liveEtasByRoute[colorKey] || []);
+            projected = await getProjectedEtas(stop.id, colorKey, null, liveEtasByRoute[colorKey] || []);
         } catch (e) {}
-        projected.forEach(eta => {
-            const row = document.createElement('div');
-            row.className = 'stop-arrival-row';
-            const badge = document.createElement('div');
-            badge.className = 'stop-arrival-badge clickable';
-            badge.style.background = info.color;
-            badge.title = `Ver linha ${colorKey}`;
-            badge.textContent = info.badgeText;
-            badge.addEventListener('click', (e) => {
-                e.stopPropagation();
-                stopPanel.classList.remove('visible');
-                if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
-                selectLine(colorKey, null);
-            });
-            const destEl = document.createElement('div');
-            destEl.className = 'stop-arrival-dest';
-            destEl.textContent = info.dest;
-            const timeEl = document.createElement('div');
-            timeEl.className = 'stop-arrival-time-projected';
-            timeEl.textContent = eta <= 0 ? 'A chegar' : `${eta} min`;
-            const timeWrap = document.createElement('div');
-            timeWrap.className = 'stop-arrival-time-wrap';
-            timeWrap.appendChild(timeEl);
-            row.appendChild(badge);
-            row.appendChild(destEl);
-            row.appendChild(timeWrap);
-            body.appendChild(row);
-        });
+        projected.forEach(eta => appendProjectedRow(body, colorKey, info, eta));
+    }
+    for (const [key, info] of Object.entries(scheduleOnlyRoutes)) {
+        let projected = [];
+        try {
+            projected = await getProjectedEtas(stop.id, info.routeCode, info.dir, []);
+        } catch (e) {}
+        projected.forEach(eta => appendProjectedRow(body, info.routeCode, info, eta));
     }
 }
 
