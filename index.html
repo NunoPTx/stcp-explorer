@@ -999,7 +999,7 @@ function appendProjectedRow(body, colorKey, info, eta) {
 async function renderArrivals(data, stop) {
     const body = document.getElementById('stop-panel-body');
     const arrivals = Array.isArray(data) ? data : (data.arrivals || data.results || data.data || []);
-    body.innerHTML = arrivals.length ? '' : '<div id="stop-panel-empty">Nenhum autocarro em circulação</div>';
+    body.innerHTML = '';
     const liveEtasByRoute = {};
     const routesSeen = {};
     arrivals.forEach(a => {
@@ -1079,6 +1079,9 @@ async function renderArrivals(data, stop) {
             projected = await getProjectedEtas(stop.id, info.routeCode, info.dir, []);
         } catch (e) {}
         projected.forEach(eta => appendProjectedRow(body, info.routeCode, info, eta));
+    }
+    if (!body.children.length) {
+        body.innerHTML = '<div id="stop-panel-empty">Nenhum autocarro em circulação</div>';
     }
 }
 
