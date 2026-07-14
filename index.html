@@ -534,7 +534,6 @@
         .stop-arrival-time { font-size: 12px; font-weight: 700; color: var(--c-blue); flex-shrink: 0; }
         .stop-arrival-time-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex-shrink: 0; }
         .stop-arrival-delay { font-size: 9px; font-weight: 600; line-height: 1; }
-        .stop-arrival-time-projected { font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
         .panel-info-col { flex: 1; min-width: 0; }
         .retry-btn {
             margin-left: 8px;
@@ -673,6 +672,7 @@ toggleBtn.addEventListener('click', () => {
 document.body.classList.add('sidebar-open');
 
 const ROUTES = {
+//  "200": ["Bolhão", "Castelo do Queijo"],
     "200": ["Bolhão", "Praça Cidade Salvador"],
     "401": ["Bolhão", "São Roque"],
     "502": ["Bolhão", "Matosinhos (Mercado)"],
@@ -843,91 +843,6 @@ async function loadStops() {
     return cachedStops;
 }
 
-let cachedCalendarMap = null;
-let cachedStopTimesIndex = null;
-
-function stripAccents(s) {
-    return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
-}
-
-function serviceIdToDCode(serviceId) {
-    const s = stripAccents(serviceId || '');
-    if (s.includes('SABADO')) return 'D2';
-    if (s.includes('DOMINGO')) return 'D3';
-    if (s.includes('NAO ESCOLAR')) return 'D6';
-    return 'D1';
-}
-
-async function loadCalendarMap() {
-    if (cachedCalendarMap) return cachedCalendarMap;
-    const r = await fetch('calendar_dates.txt', { cache: 'no-store' });
-    const csv = await r.text();
-    const map = {};
-    csv.trim().split('\n').slice(1).forEach(line => {
-        const parts = line.split(',');
-        map[parts[1]] = parts[0];
-    });
-    cachedCalendarMap = map;
-    return map;
-}
-
-async function getTodayDCode() {
-    const map = await loadCalendarMap();
-    const now = new Date();
-    const key = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-    return serviceIdToDCode(map[key]);
-}
-
-function gtfsTimeToSeconds(t) {
-    const parts = t.split(':');
-    return (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
-}
-
-function secondsSinceMidnight() {
-    const now = new Date();
-    return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-}
-
-async function loadStopTimesIndex() {
-    if (cachedStopTimesIndex) return cachedStopTimesIndex;
-    const r = await fetch('stop_times.txt', { cache: 'no-store' });
-    const csv = await r.text();
-    const lines = csv.trim().split('\n');
-    const idx = {};
-    for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split(',');
-        const tripId = cols[1];
-        const stopId = cols[4];
-        const pipeParts = tripId.split('|');
-        const routeParts = pipeParts[0].split('_');
-        const route = routeParts[0];
-        const dir = routeParts[2] || '1';
-        const dCode = pipeParts[2];
-        if (!idx[stopId]) idx[stopId] = [];
-        idx[stopId].push({ route, dir, dCode, seconds: gtfsTimeToSeconds(cols[2]) });
-    }
-    cachedStopTimesIndex = idx;
-    return idx;
-}
-
-async function getProjectedEtas(stopId, routeCode, dir, liveScheduledEtas) {
-    const idx = await loadStopTimesIndex();
-    const dCode = await getTodayDCode();
-    const entries = idx[stopId] || [];
-    const nowSec = secondsSinceMidnight();
-    const upcoming = entries
-        .filter(e => e.route === routeCode && (dir === null || e.dir === dir) && e.dCode === dCode && e.seconds > nowSec && (e.seconds - nowSec) < 3600)
-        .map(e => Math.round((e.seconds - nowSec) / 60))
-        .sort((a, b) => a - b);
-    const projected = [];
-    for (const eta of upcoming) {
-        if (liveScheduledEtas.some(le => Math.abs(le - eta) <= 1)) continue;
-        projected.push(eta);
-        if (projected.length >= 2) break;
-    }
-    return projected;
-}
-
 async function ensureSHAPES() {
     if (Object.keys(SHAPES).length > 0) return;
     const csv = await loadShapesCSV();
@@ -961,47 +876,20 @@ async function fetchStopArrivals(stop) {
     try {
         const r = await fetch(`https://stcp-proxy-production.up.railway.app/?stop=${stop.id}`);
         const data = await r.json();
-        await renderArrivals(data, stop);
+        renderArrivals(data, stop);
     } catch(e) {
         body.innerHTML = `<div id="stop-panel-empty">Erro ao carregar dados <button class="retry-btn" data-action="retry-stop">↻ Retry</button></div>`;
     }
 }
 
-function appendProjectedRow(body, colorKey, info, eta) {
-    const row = document.createElement('div');
-    row.className = 'stop-arrival-row';
-    const badge = document.createElement('div');
-    badge.className = 'stop-arrival-badge clickable';
-    badge.style.background = info.color;
-    badge.title = `Ver linha ${colorKey}`;
-    badge.textContent = info.badgeText;
-    badge.addEventListener('click', (e) => {
-        e.stopPropagation();
-        stopPanel.classList.remove('visible');
-        if (_stopRefreshTimer) { clearInterval(_stopRefreshTimer); _stopRefreshTimer = null; }
-        selectLine(colorKey, null);
-    });
-    const destEl = document.createElement('div');
-    destEl.className = 'stop-arrival-dest';
-    destEl.textContent = info.dest;
-    const timeEl = document.createElement('div');
-    timeEl.className = 'stop-arrival-time-projected';
-    timeEl.textContent = eta <= 0 ? 'A chegar' : `${eta} min`;
-    const timeWrap = document.createElement('div');
-    timeWrap.className = 'stop-arrival-time-wrap';
-    timeWrap.appendChild(timeEl);
-    row.appendChild(badge);
-    row.appendChild(destEl);
-    row.appendChild(timeWrap);
-    body.appendChild(row);
-}
-
-async function renderArrivals(data, stop) {
+function renderArrivals(data, stop) {
     const body = document.getElementById('stop-panel-body');
     const arrivals = Array.isArray(data) ? data : (data.arrivals || data.results || data.data || []);
+    if (!arrivals.length) {
+        body.innerHTML = '<div id="stop-panel-empty">Nenhum autocarro em circulação</div>';
+        return;
+    }
     body.innerHTML = '';
-    const liveEtasByRoute = {};
-    const routesSeen = {};
     arrivals.forEach(a => {
         const row = document.createElement('div');
         row.className = 'stop-arrival-row';
@@ -1047,42 +935,7 @@ async function renderArrivals(data, stop) {
         row.appendChild(destEl);
         row.appendChild(timeWrap);
         body.appendChild(row);
-        if (!routesSeen[colorKey]) routesSeen[colorKey] = { color, dest, badgeText: isZC ? 'ZC' : routeId };
-        if (mins != null && delayRaw !== undefined && delayRaw !== null) {
-            if (!liveEtasByRoute[colorKey]) liveEtasByRoute[colorKey] = [];
-            liveEtasByRoute[colorKey].push(Math.round(mins - delayRaw));
-        }
     });
-    const scheduleOnlyRoutes = {};
-    try {
-        const idx = await loadStopTimesIndex();
-        const allRouteDirsAtStop = new Set((idx[stop.id] || []).map(e => `${e.route}|${e.dir}`));
-        allRouteDirsAtStop.forEach(key => {
-            const [routeCode, dir] = key.split('|');
-            if (routesSeen[routeCode]) return;
-            const routeInfo = ROUTES[routeCode];
-            const dest = routeInfo ? (dir === '2' ? routeInfo[0] : routeInfo[1]) : '';
-            const color = lineColorFast(routeCode) || 'var(--border2)';
-            scheduleOnlyRoutes[key] = { routeCode, dir, color, dest, badgeText: routeCode };
-        });
-    } catch (e) {}
-    for (const [colorKey, info] of Object.entries(routesSeen)) {
-        let projected = [];
-        try {
-            projected = await getProjectedEtas(stop.id, colorKey, null, liveEtasByRoute[colorKey] || []);
-        } catch (e) {}
-        projected.forEach(eta => appendProjectedRow(body, colorKey, info, eta));
-    }
-    for (const [key, info] of Object.entries(scheduleOnlyRoutes)) {
-        let projected = [];
-        try {
-            projected = await getProjectedEtas(stop.id, info.routeCode, info.dir, []);
-        } catch (e) {}
-        projected.forEach(eta => appendProjectedRow(body, info.routeCode, info, eta));
-    }
-    if (!body.children.length) {
-        body.innerHTML = '<div id="stop-panel-empty">Nenhum autocarro em circulação</div>';
-    }
 }
 
 let _stopRefreshTimer = null;
