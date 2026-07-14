@@ -672,7 +672,6 @@ toggleBtn.addEventListener('click', () => {
 document.body.classList.add('sidebar-open');
 
 const ROUTES = {
-//  "200": ["Bolhão", "Castelo do Queijo"],
     "200": ["Bolhão", "Praça Cidade Salvador"],
     "401": ["Bolhão", "São Roque"],
     "502": ["Bolhão", "Matosinhos (Mercado)"],
@@ -855,13 +854,17 @@ async function ensureSHAPES() {
         shapePoints[shapeId].push([parseInt(seq), parseFloat(lat), parseFloat(lon)]);
     }
     for (const [shapeId, pts] of Object.entries(shapePoints)) {
-        const underscoreIdx = shapeId.indexOf('_');
+        const pipeIdx = shapeId.indexOf('|');
+        if (pipeIdx === -1) continue;
+        const beforePipe = shapeId.slice(0, pipeIdx);
+        const pipe = shapeId.slice(pipeIdx + 1);
+        const underscoreIdx = beforePipe.indexOf('_');
         if (underscoreIdx === -1) continue;
-        const line = shapeId.slice(0, underscoreIdx);
-        const rest = shapeId.slice(underscoreIdx + 1);
-        const parts = rest.split('_');
-        const [dir, variant] = (parts[1] || '0|0').split('|');
-        const variantKey = `Dir ${dir} v${variant}`;
+        const line = beforePipe.slice(0, underscoreIdx);
+        const middle = beforePipe.slice(underscoreIdx + 1);
+        if (middle !== '0') continue;
+        const pipeNum = parseInt(pipe);
+        const variantKey = pipeNum === 0 ? 'Dir 1' : pipeNum === 1 ? 'Dir 2' : `Variant ${pipeNum}`;
         if (!SHAPES[line]) SHAPES[line] = {};
         pts.sort((a, b) => a[0] - b[0]);
         SHAPES[line][variantKey] = pts.map(p => [p[1], p[2]]);
@@ -1240,18 +1243,22 @@ async function drawRouteFromBus(line, directionId) {
         const lines = csv.split('\n');
         let coordsWithSequence = [];
         const circularLines = ["300", "301", "302", "303"];
-        const routeIdInFile = circularLines.includes(line.toString()) ? "3" : (directionId + 1);
-        const targetPrefix  = `${line}_0_${routeIdInFile}`;
+        const targetBeforePipe = `${line}_0`;
         let detectedVariant = null;
         for (let i = 1; i < lines.length; i++) {
             const row = lines[i].split(',');
             if (row.length < 5) continue;
             const shapeId = row[3];
-            if (shapeId.startsWith(targetPrefix)) {
-                if (!detectedVariant) detectedVariant = shapeId;
-                if (shapeId === detectedVariant) {
-                    coordsWithSequence.push({ lat: parseFloat(row[0]), lng: parseFloat(row[1]), seq: parseInt(row[4]) });
-                }
+            const pipeIdx = shapeId.indexOf('|');
+            if (pipeIdx === -1) continue;
+            const beforePipe = shapeId.slice(0, pipeIdx);
+            if (beforePipe !== targetBeforePipe) continue;
+            const pipeNum = parseInt(shapeId.slice(pipeIdx + 1));
+            const isMatch = circularLines.includes(line.toString()) ? pipeNum === 0 : pipeNum === directionId;
+            if (!isMatch) continue;
+            if (!detectedVariant) detectedVariant = shapeId;
+            if (shapeId === detectedVariant) {
+                coordsWithSequence.push({ lat: parseFloat(row[0]), lng: parseFloat(row[1]), seq: parseInt(row[4]) });
             }
         }
         coordsWithSequence.sort((a, b) => a.seq - b.seq);
