@@ -29,7 +29,6 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.126652,-8.617411,1MZA1,1MZA1,Mouzinho Albuquerque,VNG1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1MZA1
 41.116183,-8.609477,1PA2,1PA2,Pinto Aguiar,VNG1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1PA2
 41.173052,-8.689079,1PCID,1PCID,Pr. Cidade Salvador,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1PCID
-41.173497,-8.689260,1PCID4,1PCID4,Pr. Cidade Salvador,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1PCID4
 41.203822,-8.565325,1PPI1,1PPI1,Parque Pícua,MAI4,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1PPI1
 41.203737,-8.565363,1PPI2,1PPI2,Parque Pícua,MAI4,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1PPI2
 41.114360,-8.612550,1RAS2,1RAS2,R. Da Rasa,VNG1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=1RAS2
@@ -779,8 +778,10 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.245537,-8.664793,DACM1,DACM1,Dr. A. Costa Maia,VCD8,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=DACM1
 41.245350,-8.664754,DACM2,DACM2,Dr. A. Costa Maia,VCD8,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=DACM2
 41.173766,-8.685467,DAFC1,DAFC1,Dr. Afonso Cordeiro,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=DAFC1
+41.173415,-8.685524,DAFC2,DAFC2,Dr. Afonso Cordeiro,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=DAFC2
 41.135111,-8.625306,DAG1,DAG1,Dr.antónio Granjo,VNG1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=DAG1
 41.172678,-8.681454,DAH1,DAH1,D.afonso Henriques,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=DAH1
+41.172398,-8.681619,DAH2,DAH2,D.afonso Henriques,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=DAH2
 41.157745,-8.598936,DAM,DAM,D.amélia,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=DAM
 41.186143,-8.603557,DB2,DB2,Dr. Barros,MAI1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=DB2
 41.204834,-8.638115,DBT1,DBT1,Dr Domingos Bontempo,MAI1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=DBT1
@@ -1651,6 +1652,7 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.150040,-8.590351,PCC2,PCC2,Piscina Campanhã,PRT1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PCC2
 41.173823,-8.688603,PCID1,PCID1,Pr. Cid. Salvador,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PCID1
 41.173229,-8.689216,PCID2,PCID2,Pr. Cid. Salvador,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PCID2
+41.173071,-8.688175,PCID3,PCID3,Pr. Cid. Salvador,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PCID3
 41.173430,-8.689265,PCID4,PCID4,Pr. Cid. Salvador,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PCID4
 41.151806,-8.668056,PCL1,PCL1,Padre Luis Cabral,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PCL1
 41.151537,-8.667786,PCL2,PCL2,Padre Luis Cabral,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PCL2
@@ -1801,6 +1803,7 @@ stop_lat,stop_lon,stop_id,stop_code,stop_name,zone_id,stop_url
 41.182420,-8.684532,PQBT3,PQBT3,Parque Basílio Teles,MTS1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PQBT3
 41.182039,-8.685115,PQBT4,PQBT4,Pq Basílio Teles,MTS1,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PQBT4
 41.171805,-8.677634,PQC1,PQC1,Parque Da Cidade,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PQC1
+41.171442,-8.678191,PQC2,PQC2,Parque Da Cidade,PRT2,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PQC2
 41.174642,-8.567449,PQN1,PQN1,Parque Nascente,PRT3,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PQN1
 41.174373,-8.567280,PQN2,PQN2,Parque Nascente,PRT3,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PQN2
 41.175841,-8.565553,PQN3,PQN3,Parque Nascente,PRT3,http://www.stcp.pt/pt/viajar/paragens/?t=detalhe&paragem=PQN3
