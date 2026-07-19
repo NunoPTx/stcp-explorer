@@ -672,7 +672,6 @@ toggleBtn.addEventListener('click', () => {
 document.body.classList.add('sidebar-open');
 
 const ROUTES = {
-//  "200": ["Bolhão", "Castelo do Queijo"],
     "200": ["Bolhão", "Praça Cidade Salvador"],
     "401": ["Bolhão", "São Roque"],
     "502": ["Bolhão", "Matosinhos (Mercado)"],
@@ -884,7 +883,8 @@ async function fetchStopArrivals(stop) {
 
 function renderArrivals(data, stop) {
     const body = document.getElementById('stop-panel-body');
-    const arrivals = Array.isArray(data) ? data : (data.arrivals || data.results || data.data || []);
+    const arrivals = (Array.isArray(data) ? data : (data.arrivals || data.results || data.data || []))
+        .filter(a => a.arrival_minutes !== -1);
     if (!arrivals.length) {
         body.innerHTML = '<div id="stop-panel-empty">Nenhum autocarro em circulação</div>';
         return;
