@@ -1287,7 +1287,7 @@ async function updateBuses() {
     try {
         let data;
         try {
-            const r = await fetch('https://stcp-proxy-production.up.railway.app', { signal: AbortSignal.timeout(5000) });
+            const r = await fetch('https://stcp.live/api/vehicles', { signal: AbortSignal.timeout(5000) });
             const json = await r.json();
             if (Array.isArray(json) && json.length > 0) data = json;
         } catch (e) {}
