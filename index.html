@@ -771,7 +771,7 @@ function lineColorFast(s) {
 }
 
 const map = L.map('map', { center: [41.157, -8.585], zoom: 13, zoomControl: true });
-L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=fede03a2-c7f6-4c7f-a524-d51e37c2017c', {
     attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 20
 }).addTo(map);
