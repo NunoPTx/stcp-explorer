@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
+        /* ===== Fonts & theme variables ===== */
         @font-face {
             font-family: 'FrutigerLTStdCn';
             src: url('FrutigerLTStd-Cn.woff2') format('woff2');
@@ -43,6 +44,7 @@
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
         }
+        /* ===== Sidebar: line list + search + variant picker ===== */
         #sidebar {
             width: var(--panel-w);
             min-width: var(--panel-w);
@@ -228,6 +230,7 @@
         }
         input:checked + .slider { background: var(--c-blue); }
         input:checked + .slider:before { transform: translateX(13px); background: #fff; }
+        /* ===== Map, sidebar toggle button & responsive layout ===== */
         #toggle-btn {
             position: absolute;
             top: 10px;
@@ -299,6 +302,7 @@
         }
         #stops-btn:active { transform: scale(0.9); }
         #stops-btn.active { border-color: var(--c-blue); box-shadow: 0 0 15px rgba(26,126,200,0.2); }
+        /* ===== Leaflet overrides (popups, zoom controls) ===== */
         .leaflet-popup-content-wrapper {
             background: var(--panel);
             color: var(--text);
@@ -317,6 +321,7 @@
             align-items: center;
             justify-content: center;
         }
+        /* ===== User location & live bus markers ===== */
         .neon-box {
             width: 12px; height: 12px;
             border: 2px solid var(--c-blue);
@@ -348,7 +353,9 @@
         }
         @media (max-width: 768px) { .bus-wrapper { transform: scale(0.9); } }
         .leaflet-marker-icon { transition: none !important; }
-        #bus-panel {
+        /* ===== Side panels (bus list / stop arrivals) ===== */
+        /* Shared "floating side panel" chrome used by #bus-panel and #stop-panel */
+        .side-panel {
             position: absolute;
             top: 10px;
             left: 410px;
@@ -364,13 +371,12 @@
             box-shadow: 0 4px 24px rgba(0,0,0,0.4);
             transition: left 0.25s;
         }
-        #bus-panel.visible { display: flex; }
-        #bus-panel.sidebar-closed { left: 50px; }
+        .side-panel.visible { display: flex; }
+        .side-panel.sidebar-closed { left: 50px; }
         @media (max-width: 768px) {
-            #bus-panel.sidebar-closed { left: 55px; }
+            .side-panel.sidebar-closed { left: 55px; }
         }
-
-        #bus-panel-header {
+        .side-panel-header {
             padding: 9px 11px 7px;
             border-bottom: 1px solid var(--border);
             display: flex;
@@ -378,7 +384,7 @@
             gap: 7px;
             flex-shrink: 0;
         }
-        #bus-panel-badge {
+        .side-panel-badge {
             min-width: 38px;
             height: 22px;
             border-radius: 5px;
@@ -387,9 +393,23 @@
             justify-content: center;
             font-size: 11px;
             font-weight: 700;
-            color: #fff;
             flex-shrink: 0;
         }
+        .side-panel-body {
+            overflow-y: auto;
+            flex: 1;
+            padding: 5px 0;
+        }
+        .side-panel-body::-webkit-scrollbar { width: 3px; }
+        .side-panel-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+        .side-panel-empty {
+            padding: 16px 11px;
+            font-size: 11px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        #bus-panel-badge { color: #fff; }
         #bus-panel-title {
             font-size: 11px;
             font-weight: 600;
@@ -404,14 +424,6 @@
             color: var(--muted);
             margin-top: 1px;
         }
-
-        #bus-panel-body {
-            overflow-y: auto;
-            flex: 1;
-            padding: 5px 0;
-        }
-        #bus-panel-body::-webkit-scrollbar { width: 3px; }
-        #bus-panel-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
         .bus-panel-dir {
             padding: 5px 11px 3px;
@@ -463,48 +475,7 @@
             font-size: 9px;
             color: var(--muted);
         }
-        #bus-panel-empty {
-            padding: 16px 11px;
-            font-size: 11px;
-            color: var(--muted);
-            text-align: center;
-        }
-
-        #stop-panel {
-            position: absolute;
-            top: 10px;
-            left: 410px;
-            z-index: 1500;
-            background: var(--panel);
-            border: 1px solid var(--border2);
-            border-radius: 10px;
-            width: 250px;
-            max-height: calc(100vh - 80px);
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-            transition: left 0.25s;
-        }
-        #stop-panel.visible { display: flex; }
-        #stop-panel.sidebar-closed { left: 50px; }
-        @media (max-width: 768px) {
-            #stop-panel.sidebar-closed { left: 55px; }
-        }
-        #stop-panel-header {
-            padding: 9px 11px 7px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            flex-shrink: 0;
-        }
-        #stop-panel-badge {
-            min-width: 38px; height: 22px; border-radius: 5px;
-            background: var(--border2);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 700; color: var(--muted2); flex-shrink: 0;
-        }
+        #stop-panel-badge { background: var(--border2); color: var(--muted2); }
         #stop-panel-name {
             font-size: 11px; font-weight: 600; color: var(--text);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;
@@ -516,10 +487,6 @@
         }
         #stop-panel-close:hover, #bus-panel-close:hover, #stop-panel-reload:hover { color: var(--text); }
         #stop-panel-reload { font-size: 16px; }
-        #stop-panel-body { overflow-y: auto; flex: 1; padding: 5px 0; }
-        #stop-panel-body::-webkit-scrollbar { width: 3px; }
-        #stop-panel-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-        #stop-panel-empty { padding: 16px 11px; font-size: 11px; color: var(--muted); text-align: center; }
         .stop-arrival-row {
             display: flex; align-items: center; gap: 8px;
             padding: 6px 11px; border-bottom: 1px solid var(--border);
@@ -598,31 +565,31 @@
     </div>
 </div>
 
-<div id="bus-panel">
-    <div id="bus-panel-header">
-        <div id="bus-panel-badge"></div>
+<div id="bus-panel" class="side-panel">
+    <div id="bus-panel-header" class="side-panel-header">
+        <div id="bus-panel-badge" class="side-panel-badge"></div>
         <div class="panel-info-col">
             <div id="bus-panel-title"></div>
             <div id="bus-panel-subtitle"></div>
         </div>
         <button id="bus-panel-close">✕</button>
     </div>
-    <div id="bus-panel-body">
-        <div id="bus-panel-empty">Nenhum autocarro em circulação</div>
+    <div id="bus-panel-body" class="side-panel-body">
+        <div id="bus-panel-empty" class="side-panel-empty">Nenhum autocarro em circulação</div>
     </div>
 </div>
 
-<div id="stop-panel">
-    <div id="stop-panel-header">
-        <div id="stop-panel-badge"></div>
+<div id="stop-panel" class="side-panel">
+    <div id="stop-panel-header" class="side-panel-header">
+        <div id="stop-panel-badge" class="side-panel-badge"></div>
         <div class="panel-info-col">
             <div id="stop-panel-name"></div>
         </div>
         <button id="stop-panel-reload" title="Atualizar">↻</button>
         <button id="stop-panel-close">✕</button>
     </div>
-    <div id="stop-panel-body">
-        <div id="stop-panel-empty">A carregar...</div>
+    <div id="stop-panel-body" class="side-panel-body">
+        <div id="stop-panel-empty" class="side-panel-empty">A carregar...</div>
     </div>
 </div>
 
@@ -652,6 +619,7 @@
 document.getElementById('logo-mark').innerHTML =
     '<img src="STCP_logo1_RGB.png" alt="STCP">';
 
+/* ===== Sidebar / panel toggle ===== */
 const toggleBtn = document.getElementById('toggle-btn');
 const sidebar   = document.getElementById('sidebar');
 const busPanel  = document.getElementById('bus-panel');
@@ -671,6 +639,7 @@ toggleBtn.addEventListener('click', () => {
 });
 document.body.classList.add('sidebar-open');
 
+/* ===== Route data: line -> [origin, destination] ===== */
 const ROUTES = {
     "200": ["Bolhão", "Castelo do Queijo"],
     "401": ["Bolhão", "São Roque"],
@@ -745,6 +714,7 @@ const ROUTES = {
     "209": ["Pasteleira", "Prelada"],
 };
 
+/* ===== Line-family colour helpers ===== */
 function getBusColor(line) {
     if (!line) return '#ffffff';
     const s = line.toString().toUpperCase().trim();
@@ -770,6 +740,7 @@ function lineColorFast(s) {
     return '#555';
 }
 
+/* ===== Map init & shared state ===== */
 const map = L.map('map', { center: [41.157, -8.585], zoom: 13, zoomControl: true });
 L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=fede03a2-c7f6-4c7f-a524-d51e37c2017c', {
     attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -796,6 +767,7 @@ let liveData          = [];
 map.on('zoomstart', () => { isZooming = true; });
 map.on('zoomend',   () => { isZooming = false; });
 
+/* ===== GPS / user location ===== */
 map.on('locationfound', (e) => {
     userPos = e.latlng;
     if (!userMarker) {
@@ -823,6 +795,7 @@ function centerMapOnUser() {
 }
 document.getElementById('gps-btn').addEventListener('click', centerMapOnUser);
 
+/* ===== Static data loading (shapes.txt / stops.txt) ===== */
 async function loadShapesCSV() {
     if (cachedShapes !== null) return cachedShapes;
     const r = await fetch('shapes.txt', { cache: 'no-store' });
@@ -867,17 +840,18 @@ async function ensureSHAPES() {
     }
 }
 
+/* ===== Stop panel: live arrivals ===== */
 let _currentStop = null;
 
 async function fetchStopArrivals(stop) {
     const body = document.getElementById('stop-panel-body');
-    body.innerHTML = '<div id="stop-panel-empty">A carregar...</div>';
+    body.innerHTML = '<div id="stop-panel-empty" class="side-panel-empty">A carregar...</div>';
     try {
         const r = await fetch(`https://stcp-proxy.onrender.com/?stop=${stop.id}`);
         const data = await r.json();
         renderArrivals(data, stop);
     } catch(e) {
-        body.innerHTML = `<div id="stop-panel-empty">Erro ao carregar dados <button class="retry-btn" data-action="retry-stop">↻ Retry</button></div>`;
+        body.innerHTML = `<div id="stop-panel-empty" class="side-panel-empty">Erro ao carregar dados <button class="retry-btn" data-action="retry-stop">↻ Retry</button></div>`;
     }
 }
 
@@ -886,7 +860,7 @@ function renderArrivals(data, stop) {
     const arrivals = (Array.isArray(data) ? data : (data.arrivals || data.results || data.data || []))
         .filter(a => a.arrival_minutes !== -1);
     if (!arrivals.length) {
-        body.innerHTML = '<div id="stop-panel-empty">Nenhum autocarro em circulação</div>';
+        body.innerHTML = '<div id="stop-panel-empty" class="side-panel-empty">Nenhum autocarro em circulação</div>';
         return;
     }
     body.innerHTML = '';
@@ -964,6 +938,7 @@ async function openStopPanel(stop) {
     }, 1000);
 }
 
+/* ===== Sidebar: route list ===== */
 async function buildSidebar() {
     await ensureSHAPES();
 
@@ -1032,6 +1007,7 @@ async function buildSidebar() {
     });
 }
 
+/* ===== Ordered stops per route + "next stop" for a bus ===== */
 const routeStopCache = {};
 
 function getRouteStops(line, directionId) {
@@ -1088,6 +1064,7 @@ function getNextStop(bus) {
     return dot > 0 ? next : stops[closestIdx];
 }
 
+/* ===== Bus panel: buses currently on the selected line ===== */
 function updateBusPanel() {
     const panel = document.getElementById('bus-panel');
     if (stopPanel.classList.contains('visible')) { panel.classList.remove('visible'); return; }
@@ -1112,7 +1089,7 @@ function updateBusPanel() {
     body.innerHTML = '';
 
     if (buses.length === 0) {
-        body.innerHTML = '<div id="bus-panel-empty">Nenhum autocarro em circulação</div>';
+        body.innerHTML = '<div id="bus-panel-empty" class="side-panel-empty">Nenhum autocarro em circulação</div>';
         panel.classList.add('visible');
         return;
     }
@@ -1168,6 +1145,16 @@ function updateBusPanel() {
     panel.classList.add('visible');
 }
 
+/* Small shared helper: a stop marker with a tooltip that opens the stop panel on click. */
+function makeStopMarker(stop, { radius, fillColor, weight = 2, color = '#fff' }) {
+    const marker = L.circleMarker([stop.lat, stop.lng], {
+        radius, color, weight, fillColor, fillOpacity: 1, interactive: true
+    }).bindTooltip(stop.name, { direction: 'top' }).addTo(map);
+    marker.on('click', (e) => { L.DomEvent.stopPropagation(e); openStopPanel(stop); });
+    return marker;
+}
+
+/* ===== Line selection & route drawing on the map ===== */
 function selectLine(line, renderListFn) {
     selectedLine = line;
     selectedDirection = null;
@@ -1219,10 +1206,7 @@ function showRouteFromSidebar(line, variant) {
         stops.forEach(stop => {
             const match = coords.some(([rlat, rlon]) => stop.lat === rlat && stop.lng === rlon);
             if (!match) return;
-            const marker = L.circleMarker([stop.lat, stop.lng], {
-                radius: 4, color: '#fff', weight: 2, fillColor: color, fillOpacity: 1, interactive: true
-            }).bindTooltip(stop.name, { permanent: false, direction: 'top' }).addTo(map);
-            marker.on('click', (e) => { L.DomEvent.stopPropagation(e); openStopPanel(stop); });
+            const marker = makeStopMarker(stop, { radius: 4, fillColor: color });
             stopLayers.push(marker);
         });
     });
@@ -1265,10 +1249,7 @@ async function drawRouteFromBus(line, directionId) {
             const routePointSet = new Set(finalCoords.map(([lat, lng]) => `${lat},${lng}`));
             stops.forEach(stop => {
                 if (!routePointSet.has(`${stop.lat},${stop.lng}`)) return;
-                const marker = L.circleMarker([stop.lat, stop.lng], {
-                    radius: 4, color: '#ffffff', weight: 2, fillColor: getBusColor(line), fillOpacity: 1, interactive: true
-                }).bindTooltip(stop.name, { direction: 'top' }).addTo(map);
-                marker.on('click', (e) => { L.DomEvent.stopPropagation(e); openStopPanel(stop); });
+                const marker = makeStopMarker(stop, { radius: 4, fillColor: getBusColor(line) });
                 stopLayers.push(marker);
             });
         }
@@ -1282,6 +1263,7 @@ function clearRouteLayer() {
     routeSource = null;
 }
 
+/* ===== Live bus polling ===== */
 async function updateBuses() {
     if (isZooming) return;
     try {
@@ -1348,6 +1330,7 @@ async function updateBuses() {
     } catch (e) { console.error(e); }
 }
 
+/* ===== Bootstrap & global event wiring ===== */
 buildSidebar();
 updateBuses();
 setInterval(updateBuses, 2000);
@@ -1385,6 +1368,7 @@ if (window.innerWidth <= 768) {
     });
 }
 
+/* ===== "Show all stops" toggle ===== */
 let allStopsVisible = false;
 let allStopMarkers = [];
 
@@ -1403,10 +1387,7 @@ async function toggleAllStops() {
     btn.querySelector('svg').style.stroke = 'var(--c-blue)';
     const stops = await loadStops();
     stops.forEach(stop => {
-        const m = L.circleMarker([stop.lat, stop.lng], {
-            radius: 3, color: '#fff', weight: 1.5, fillColor: '#555', fillOpacity: 1, interactive: true
-        }).bindTooltip(stop.name, { direction: 'top' }).addTo(map);
-        m.on('click', (e) => { L.DomEvent.stopPropagation(e); openStopPanel(stop); });
+        const m = makeStopMarker(stop, { radius: 3, weight: 1.5, fillColor: '#555' });
         allStopMarkers.push(m);
     });
 }
