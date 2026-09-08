@@ -370,6 +370,9 @@ const stopPanelBody = document.getElementById('stop-panel-body');
 const busPanelBody  = document.getElementById('bus-panel-body');
 const counterEl     = document.getElementById('counter');
 const timestampEl   = document.getElementById('timestamp');
+
+const CORS_PROXY = 'https://corsproxy.io/?';
+
 toggleBtn.addEventListener('click', () => {
     const collapsed = sidebar.classList.toggle('collapsed');
     toggleBtn.classList.toggle('open', !collapsed);
@@ -519,7 +522,8 @@ document.getElementById('gps-btn').addEventListener('click', () => {
 async function fetchRouteShape(line, directionId) {
     const key = `${line}_${directionId}`;
     if (shapeCache[key]) return shapeCache[key];
-    const r = await fetch(`https://stcp.pt/api/route/${line}/shape?direction_id=${directionId}`);
+    const targetUrl = `https://stcp.pt/api/route/${line}/shape?direction_id=${directionId}`;
+    const r = await fetch(CORS_PROXY + encodeURIComponent(targetUrl));
     const data = await r.json();
     const coords = (data.coordinates || [])
         .slice()
@@ -529,7 +533,8 @@ async function fetchRouteShape(line, directionId) {
     return coords;
 }
 async function fetchRouteStopsForDirection(line, directionId) {
-    const r = await fetch(`https://stcp.pt/api/route/${line}/stops/direction?direction_id=${directionId}`);
+    const targetUrl = `https://stcp.pt/api/route/${line}/stops/direction?direction_id=${directionId}`;
+    const r = await fetch(CORS_PROXY + encodeURIComponent(targetUrl));
     const data = await r.json();
     return (data.stops || [])
         .slice()
@@ -538,7 +543,8 @@ async function fetchRouteStopsForDirection(line, directionId) {
 }
 async function loadAllStops() {
     if (!cachedStops) {
-        const r = await fetch('https://stcp.pt/api/stops', { cache: 'no-store' });
+        const targetUrl = 'https://stcp.pt/api/stops';
+        const r = await fetch(CORS_PROXY + encodeURIComponent(targetUrl), { cache: 'no-store' });
         const data = await r.json();
         cachedStops = (data.stops || [])
             .map(s => ({ id: s.stop_id, name: s.stop_name, lat: s.stop_lat, lng: s.stop_lon }))
@@ -546,11 +552,9 @@ async function loadAllStops() {
     }
     return cachedStops;
 }
-// Reserved for future use: route metadata (short/long name, color, per-direction headsigns).
-// Not currently called anywhere.
-// Example: https://wab.stcp.pt/tracking/api/route-stops?route=207
 async function fetchRouteDirections(line) {
-    const r = await fetch(`https://wab.stcp.pt/tracking/api/route-stops?route=${line}`);
+    const targetUrl = `https://wab.stcp.pt/tracking/api/route-stops?route=${line}`;
+    const r = await fetch(CORS_PROXY + encodeURIComponent(targetUrl));
     const data = await r.json();
     return data.directions || [];
 }
