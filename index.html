@@ -119,26 +119,6 @@
         }
         .vbtn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
         .vbtn.active { color: #fff; font-weight: 600; border-color: transparent; background: var(--vbtn-color, var(--c-blue)); }
-        #all-wrap {
-            padding: 10px 12px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--panel2);
-        }
-        #all-wrap span { font-size: 11px; font-weight: 500; color: var(--muted2); cursor: pointer; user-select: none; }
-        .toggle { position: relative; width: 30px; height: 17px; flex-shrink: 0; }
-        .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-        .slider { position: absolute; inset: 0; background: var(--border2); border-radius: 17px; cursor: pointer; transition: background 0.2s; }
-        .slider:before {
-            content: ''; position: absolute;
-            width: 11px; height: 11px; left: 3px; top: 3px;
-            background: var(--muted); border-radius: 50%;
-            transition: transform 0.18s, background 0.18s;
-        }
-        input:checked + .slider { background: var(--c-blue); }
-        input:checked + .slider:before { transform: translateX(13px); background: #fff; }
         #toggle-btn {
             position: absolute;
             top: 10px;
@@ -332,13 +312,6 @@
         <div id="variant-btns"></div>
     </div>
     <div id="route-list"></div>
-    <div id="all-wrap">
-        <label class="toggle">
-            <input type="checkbox" id="all-toggle">
-            <span class="slider"></span>
-        </label>
-        <span>Mostrar todas as linhas</span>
-    </div>
 </div>
 <div id="bus-panel" class="side-panel">
     <div id="bus-panel-header" class="side-panel-header">
@@ -512,7 +485,6 @@ let SHAPES       = {};
 const routeStopCache = {};
 let currentRouteLayer = null;
 let stopLayers        = [];
-let allLayers         = [];
 let selectedLine      = null;
 let selectedDirection = null;
 let routeSource       = null;
@@ -702,19 +674,6 @@ async function buildSidebar() {
     }
     renderList('');
     searchInput.addEventListener('input', e => renderList(e.target.value));
-    document.getElementById('all-toggle').addEventListener('change', function () {
-        if (this.checked) {
-            lines.forEach(line => {
-                const color = getBusColor(line);
-                Object.values(SHAPES[line]).forEach(coords => {
-                    allLayers.push(L.polyline(coords, { color, weight: 1.5, opacity: 0.18 }).addTo(map));
-                });
-            });
-        } else {
-            allLayers.forEach(l => map.removeLayer(l));
-            allLayers = [];
-        }
-    });
 }
 function getRouteStops(line, directionId) {
     const key = `${line}|${directionId}`;
