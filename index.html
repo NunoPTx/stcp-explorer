@@ -479,9 +479,8 @@ L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{
     maxZoom: 20
 }).addTo(map);
 let isZooming    = false;
-let cachedShapes = null;
 let cachedStops  = null;
-let SHAPES       = {};
+const shapeCache = {};
 const routeStopCache = {};
 let currentRouteLayer = null;
 let stopLayers        = [];
@@ -517,46 +516,43 @@ document.getElementById('gps-btn').addEventListener('click', () => {
     if (userPos) map.flyTo(userPos, 16, { duration: 1.5 });
     else alert('A aguardar sinal GPS...');
 });
-async function loadShapesCSV() {
-    if (cachedShapes === null) {
-        const r = await fetch('shapes.txt', { cache: 'no-store' });
-        cachedShapes = await r.text();
-    }
-    return cachedShapes;
+async function fetchRouteShape(line, directionId) {
+    const key = `${line}_${directionId}`;
+    if (shapeCache[key]) return shapeCache[key];
+    const r = await fetch(`https://stcp.pt/api/route/${line}/shape?direction_id=${directionId}`);
+    const data = await r.json();
+    const coords = (data.coordinates || [])
+        .slice()
+        .sort((a, b) => a.sequence - b.sequence)
+        .map(c => [c.lat, c.lng]);
+    shapeCache[key] = coords;
+    return coords;
 }
-async function loadStops() {
+async function fetchRouteStopsForDirection(line, directionId) {
+    const r = await fetch(`https://stcp.pt/api/route/${line}/stops/direction?direction_id=${directionId}`);
+    const data = await r.json();
+    return (data.stops || [])
+        .slice()
+        .sort((a, b) => a.stop_sequence - b.stop_sequence)
+        .map(s => ({ id: s.stop_id, name: s.stop_name, lat: s.stop_lat, lng: s.stop_lon }));
+}
+async function loadAllStops() {
     if (!cachedStops) {
-        const r = await fetch('stops.txt', { cache: 'no-store' });
-        const csv = await r.text();
-        cachedStops = csv.trim().split('\n').slice(1).map(row => {
-            const p = row.split(',');
-            return { lat: parseFloat(p[0]), lng: parseFloat(p[1]), id: p[2], name: p[4] };
-        }).filter(s => !isNaN(s.lat) && !isNaN(s.lng) && s.name);
-        Object.keys(routeStopCache).forEach(k => delete routeStopCache[k]);
+        const r = await fetch('https://stcp.pt/api/stops', { cache: 'no-store' });
+        const data = await r.json();
+        cachedStops = (data.stops || [])
+            .map(s => ({ id: s.stop_id, name: s.stop_name, lat: s.stop_lat, lng: s.stop_lon }))
+            .filter(s => !isNaN(s.lat) && !isNaN(s.lng) && s.name);
     }
     return cachedStops;
 }
-async function ensureSHAPES() {
-    if (Object.keys(SHAPES).length) return;
-    const csv = await loadShapesCSV();
-    const rows = csv.trim().split('\n');
-    const shapePoints = {};
-    for (let i = 1; i < rows.length; i++) {
-        const [lat, lon, , shapeId, seq] = rows[i].split(',');
-        if (!shapeId) continue;
-        if (!shapePoints[shapeId]) shapePoints[shapeId] = [];
-        shapePoints[shapeId].push([parseInt(seq), parseFloat(lat), parseFloat(lon)]);
-    }
-    for (const [shapeId, pts] of Object.entries(shapePoints)) {
-        const idx = shapeId.indexOf('_');
-        if (idx === -1) continue;
-        const line = shapeId.slice(0, idx);
-        const parts = shapeId.slice(idx + 1).split('_');
-        const [dir, variant] = (parts[1] || '0|0').split('|');
-        pts.sort((a, b) => a[0] - b[0]);
-        if (!SHAPES[line]) SHAPES[line] = {};
-        SHAPES[line][`Dir ${dir} v${variant}`] = pts.map(p => [p[1], p[2]]);
-    }
+// Reserved for future use: route metadata (short/long name, color, per-direction headsigns).
+// Not currently called anywhere.
+// Example: https://wab.stcp.pt/tracking/api/route-stops?route=207
+async function fetchRouteDirections(line) {
+    const r = await fetch(`https://wab.stcp.pt/tracking/api/route-stops?route=${line}`);
+    const data = await r.json();
+    return data.directions || [];
 }
 async function fetchStopArrivals(stop) {
     stopPanelBody.innerHTML = '<div class="side-panel-empty">A carregar...</div>';
@@ -638,8 +634,7 @@ async function openStopPanel(stop) {
     }, 1000);
 }
 async function buildSidebar() {
-    await ensureSHAPES();
-    const lines = Object.keys(SHAPES).sort((a, b) => {
+    const lines = Object.keys(ROUTES).sort((a, b) => {
         const aNum = parseInt(a), bNum = parseInt(b);
         if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
         if (!isNaN(aNum)) return -1;
@@ -677,23 +672,15 @@ async function buildSidebar() {
 }
 function getRouteStops(line, directionId) {
     const key = `${line}|${directionId}`;
-    if (routeStopCache[key]) return routeStopCache[key];
-    if (!cachedStops || !SHAPES[line]) return [];
-    const wantDir = directionId === 0 ? '1' : '2';
-    const variantKey = Object.keys(SHAPES[line]).find(k => k.startsWith(`Dir ${wantDir}`)) || Object.keys(SHAPES[line])[0];
-    if (!variantKey) return [];
-    const coords = SHAPES[line][variantKey];
-    const routeSet = new Set(coords.map(([la, lo]) => `${la},${lo}`));
-    const ordered = [];
-    const seen = new Set();
-    coords.forEach(([la, lo]) => {
-        const k = `${la},${lo}`;
-        if (!routeSet.has(k) || seen.has(k)) return;
-        const stop = cachedStops.find(s => s.lat === la && s.lng === lo);
-        if (stop) { ordered.push(stop); seen.add(k); }
-    });
-    routeStopCache[key] = ordered;
-    return ordered;
+    const cached = routeStopCache[key];
+    if (Array.isArray(cached)) return cached;
+    if (cached !== 'loading') {
+        routeStopCache[key] = 'loading';
+        fetchRouteStopsForDirection(line, directionId)
+            .then(stops => { routeStopCache[key] = stops; })
+            .catch(() => { routeStopCache[key] = []; });
+    }
+    return [];
 }
 function dist2(lat1, lng1, lat2, lng2) {
     const dlat = lat1 - lat2, dlng = (lng1 - lng2) * Math.cos(lat1 * Math.PI / 180);
@@ -788,18 +775,16 @@ function selectLine(line, renderListFn) {
     variantBar.classList.add('visible');
     const color = getBusColor(line);
     const info  = ROUTES[line];
-    Object.keys(SHAPES[line]).forEach((v, i) => {
+    [0, 1].forEach((directionId, i) => {
         const b = document.createElement('button');
         b.className = 'vbtn';
-        if (v === 'Dir 1 v0' && info)      b.textContent = info[1];
-        else if (v === 'Dir 2 v0' && info) b.textContent = info[0];
-        else                               b.textContent = v;
+        b.textContent = info ? (directionId === 0 ? info[1] : info[0]) : `Sentido ${directionId}`;
         b.addEventListener('click', () => {
             document.querySelectorAll('.vbtn').forEach(x => x.classList.remove('active'));
             b.classList.add('active');
             b.style.setProperty('--vbtn-color', color);
-            selectedDirection = v.startsWith('Dir 2') ? 1 : 0;
-            showRouteFromSidebar(line, v);
+            selectedDirection = directionId;
+            showRouteFromSidebar(line, directionId);
             updateBusPanel();
         });
         variantBtns.appendChild(b);
@@ -810,52 +795,36 @@ function selectLine(line, renderListFn) {
 function drawRoutePolyline(coords, color, weight, extra = {}) {
     currentRouteLayer = L.polyline(coords, { color, weight, opacity: 1, lineJoin: 'round', ...extra }).addTo(map);
 }
-async function addStopsAlongRoute(coords, color) {
-    const stops = await loadStops();
-    const pointSet = new Set(coords.map(([la, lo]) => `${la},${lo}`));
+async function addRouteStopMarkers(line, directionId, color) {
+    const stops = await fetchRouteStopsForDirection(line, directionId);
+    routeStopCache[`${line}|${directionId}`] = stops;
     stops.forEach(stop => {
-        if (!pointSet.has(`${stop.lat},${stop.lng}`)) return;
         stopLayers.push(makeStopMarker(stop, { radius: 4, fillColor: color }));
     });
 }
-function showRouteFromSidebar(line, variant) {
+async function showRouteFromSidebar(line, directionId) {
+    closeStopPanel();
     clearRouteLayer();
     routeSource = 'sidebar';
-    const coords = SHAPES[line][variant];
-    const color  = getBusColor(line);
-    drawRoutePolyline(coords, color, 4, { lineCap: 'round' });
-    map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
-    addStopsAlongRoute(coords, color);
-}
-async function getBusShapeCoords(line, directionId) {
-    const csv = await loadShapesCSV();
-    const rows = csv.split('\n');
-    const circular = ['300', '301', '302', '303'].includes(line.toString());
-    const targetPrefix = `${line}_0_${circular ? '3' : directionId + 1}`;
-    let detectedVariant = null;
-    const pts = [];
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i].split(',');
-        if (row.length < 5) continue;
-        const shapeId = row[3];
-        if (!shapeId.startsWith(targetPrefix)) continue;
-        if (!detectedVariant) detectedVariant = shapeId;
-        if (shapeId !== detectedVariant) continue;
-        pts.push({ lat: parseFloat(row[0]), lng: parseFloat(row[1]), seq: parseInt(row[4]) });
-    }
-    pts.sort((a, b) => a.seq - b.seq);
-    return pts.map(p => [p.lat, p.lng]);
+    try {
+        const coords = await fetchRouteShape(line, directionId);
+        if (!coords.length) return;
+        const color = getBusColor(line);
+        drawRoutePolyline(coords, color, 4, { lineCap: 'round' });
+        map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
+        await addRouteStopMarkers(line, directionId, color);
+    } catch (e) { console.error(e); }
 }
 async function drawRouteFromBus(line, directionId) {
     closeStopPanel();
     clearRouteLayer();
     routeSource = 'bus';
     try {
-        const coords = await getBusShapeCoords(line, directionId);
+        const coords = await fetchRouteShape(line, directionId);
         if (!coords.length) return;
         const color = getBusColor(line);
         drawRoutePolyline(coords, color, 3, { interactive: false });
-        await addStopsAlongRoute(coords, color);
+        await addRouteStopMarkers(line, directionId, color);
     } catch (e) { console.error(e); }
 }
 function clearRouteLayer() {
@@ -962,7 +931,7 @@ async function toggleAllStops() {
     allStopsVisible = true;
     btn.classList.add('active');
     btn.querySelector('svg').style.stroke = 'var(--c-blue)';
-    (await loadStops()).forEach(stop => {
+    (await loadAllStops()).forEach(stop => {
         allStopMarkers.push(makeStopMarker(stop, { radius: 3, weight: 1.5, fillColor: '#555' }));
     });
 }
