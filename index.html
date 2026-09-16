@@ -26,7 +26,6 @@
             --c-yellow: #d4a800;
             --c-green:  #009a00;
             --c-red:    #d42020;
-            --c-purple: #8833dd;
             --c-orange: #e06800;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -148,11 +147,7 @@
             #sidebar { position: absolute; top: 0; left: 0; bottom: 0; height: 100dvh; z-index: 1500; }
             #toggle-btn { width: 42px; height: 42px; font-size: 24px; }
             #toggle-btn.open { left: calc(var(--panel-w) - 26px); }
-            body.sidebar-open #dashboard { display: none; }
-            #dashboard { transition: opacity 0.4s ease; }
-            #dashboard.hidden { opacity: 0; pointer-events: none; }
             .bus-wrapper { transform: scale(0.9); }
-            .side-panel.sidebar-closed { left: 55px; }
         }
         #dashboard {
             position: absolute; top: 10px; right: 10px; z-index: 1000;
@@ -160,19 +155,17 @@
             border-radius: 8px;
             border: 1px solid var(--border2); text-align: right; pointer-events: none;
         }
-        .gps-button, #stops-btn {
+        .gps-button {
             position: absolute; right: 20px; z-index: 1000;
             width: 45px; height: 45px; background: var(--panel);
             border-radius: 10px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             pointer-events: auto; transition: all 0.2s ease;
         }
-        .gps-button:active, #stops-btn:active { transform: scale(0.9); }
+        .gps-button:active { transform: scale(0.9); }
         .gps-button { bottom: max(30px, env(safe-area-inset-bottom) + 12px); border: 1.5px solid var(--c-blue); box-shadow: 0 0 15px rgba(26,126,200,0.2); }
         .gps-button:active { background: var(--c-blue); }
         .gps-button:active svg { stroke: #000; }
-        #stops-btn { bottom: max(85px, env(safe-area-inset-bottom) + 67px); border: 1.5px solid var(--border2); }
-        #stops-btn.active { border-color: var(--c-blue); box-shadow: 0 0 15px rgba(26,126,200,0.2); }
         .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--panel); }
         .leaflet-popup-content-wrapper {
             color: var(--text);
@@ -300,8 +293,8 @@
     <div id="sidebar-header">
         <div class="logo-mark" id="logo-mark"></div>
         <div id="header-text">
-            <h1></h1>
-            <p>75 Linhas</p>
+            <h1>STCP</h1>
+            <p id="route-count">Linhas</p>
         </div>
     </div>
     <div id="search-wrap">
@@ -343,12 +336,6 @@
 <div id="dashboard">
     <div id="counter">A ligar...</div>
     <div id="timestamp">A aguardar dados...</div>
-</div>
-<div id="stops-btn" title="Mostrar paragens">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
-        <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
-    </svg>
 </div>
 <div class="gps-button" id="gps-btn" title="Centrar na minha localização">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--c-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -437,11 +424,11 @@ const ROUTES = {
     "900": ["Cordoaria", "Francelos"],
     "402": ["Boavista (Bom Sucesso)", "São Roque"],
     "503": ["Boavista (Bom Sucesso)", "Gatões"],
+    "508": ["Boavista (Bom Sucesso)", "Cabo do Mundo (Via MAR Shopping)"],
     "803": ["Boavista (Bom Sucesso)", "Rio Tinto (Escola Secundária)"],
     "907": ["Boavista (Bom Sucesso)", "Vila D'Este"],
     "403": ["Boavista (Casa da Música)", "Campanhã"],
     "504": ["Boavista (Casa da Música)", "Norteshopping"],
-    "508": ["Boavista (Casa da Música)", "Cabo do Mundo (Via MAR Shopping)"],
     "704": ["Boavista (Casa da Música)", "Codiceira"],
     "902": ["Boavista (Casa da Música)", "Lavadores"],
     "903": ["Boavista (Casa da Música)", "Laborim"],
@@ -479,15 +466,12 @@ L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{
     maxZoom: 20
 }).addTo(map);
 let isZooming    = false;
-let cachedShapes = null;
-let cachedStops  = null;
-let SHAPES       = {};
-const routeStopCache = {};
+const routeFullCache = {};
+const routeStopsCache = {};
 let currentRouteLayer = null;
 let stopLayers        = [];
 let selectedLine      = null;
 let selectedDirection = null;
-let routeSource       = null;
 let busMarkers = {};
 let userMarker = null;
 let userPos    = null;
@@ -517,51 +501,85 @@ document.getElementById('gps-btn').addEventListener('click', () => {
     if (userPos) map.flyTo(userPos, 16, { duration: 1.5 });
     else alert('A aguardar sinal GPS...');
 });
-async function loadShapesCSV() {
-    if (cachedShapes === null) {
-        const r = await fetch('shapes.txt', { cache: 'no-store' });
-        cachedShapes = await r.text();
-    }
-    return cachedShapes;
+const PROXY_BASE = 'https://stcp-proxy.onrender.com';
+
+function fetchRouteFull(line, directionId) {
+    const key = `${line}_${directionId}`;
+    if (routeFullCache[key]) return routeFullCache[key];
+    const promise = (async () => {
+        const r = await fetch(`${PROXY_BASE}/route-full/${line}?direction_id=${directionId}`);
+        const data = await r.json();
+        const coords = (data.shape || []).map(p => [p[0], p[1]]);
+        const stops = (data.stops || []).map(s => ({ id: s.stop_id, name: s.stop_name, lat: s.lat, lng: s.lon }));
+        routeStopsCache[key] = stops;
+        return { coords, stops, headsign: data.headsign || null };
+    })();
+    routeFullCache[key] = promise;
+    promise.catch(() => { delete routeFullCache[key]; });
+    return promise;
 }
-async function loadStops() {
-    if (!cachedStops) {
-        const r = await fetch('stops.txt', { cache: 'no-store' });
-        const csv = await r.text();
-        cachedStops = csv.trim().split('\n').slice(1).map(row => {
-            const p = row.split(',');
-            return { lat: parseFloat(p[0]), lng: parseFloat(p[1]), id: p[2], name: p[4] };
-        }).filter(s => !isNaN(s.lat) && !isNaN(s.lng) && s.name);
-        Object.keys(routeStopCache).forEach(k => delete routeStopCache[k]);
-    }
-    return cachedStops;
+
+async function fetchRouteDirections(line) {
+    const r = await fetch(`${PROXY_BASE}/route-directions/${line}`);
+    const data = await r.json();
+    return data.directions || [];
 }
-async function ensureSHAPES() {
-    if (Object.keys(SHAPES).length) return;
-    const csv = await loadShapesCSV();
-    const rows = csv.trim().split('\n');
-    const shapePoints = {};
-    for (let i = 1; i < rows.length; i++) {
-        const [lat, lon, , shapeId, seq] = rows[i].split(',');
-        if (!shapeId) continue;
-        if (!shapePoints[shapeId]) shapePoints[shapeId] = [];
-        shapePoints[shapeId].push([parseInt(seq), parseFloat(lat), parseFloat(lon)]);
+
+const routeDirCache = {};
+const routeDirListeners = {};
+function ensureRouteDirections(line, onReady) {
+    const cached = routeDirCache[line];
+    if (cached && cached !== 'loading') { if (onReady) onReady(cached); return; }
+    if (onReady) {
+        if (!routeDirListeners[line]) routeDirListeners[line] = [];
+        routeDirListeners[line].push(onReady);
     }
-    for (const [shapeId, pts] of Object.entries(shapePoints)) {
-        const idx = shapeId.indexOf('_');
-        if (idx === -1) continue;
-        const line = shapeId.slice(0, idx);
-        const parts = shapeId.slice(idx + 1).split('_');
-        const [dir, variant] = (parts[1] || '0|0').split('|');
-        pts.sort((a, b) => a[0] - b[0]);
-        if (!SHAPES[line]) SHAPES[line] = {};
-        SHAPES[line][`Dir ${dir} v${variant}`] = pts.map(p => [p[1], p[2]]);
+    if (cached === 'loading') return;
+    routeDirCache[line] = 'loading';
+    fetchRouteDirections(line).then(dirs => {
+        const seen = new Set();
+        const validDirs = (dirs.length ? dirs : [{ direction_id: 0, headsign: (ROUTES[line] || ['', ''])[1] }])
+            .filter(d => {
+                if (seen.has(d.direction_id)) return false;
+                seen.add(d.direction_id);
+                return true;
+            });
+        routeDirCache[line] = validDirs;
+        (routeDirListeners[line] || []).forEach(cb => cb(validDirs));
+        delete routeDirListeners[line];
+    }).catch(() => {
+        const fallback = [{ direction_id: 0, headsign: (ROUTES[line] || ['', ''])[1] }];
+        routeDirCache[line] = fallback;
+        (routeDirListeners[line] || []).forEach(cb => cb(fallback));
+        delete routeDirListeners[line];
+    });
+}
+function getRouteLabels(line) {
+    const cached = routeDirCache[line];
+    if (cached && cached !== 'loading') {
+        // cached is an array of {direction_id, headsign} from the live API.
+        // Normalize to the same [dir1Label, dir0Label] string-pair shape ROUTES
+        // uses, so every consumer (info[0]/info[1]) works regardless of whether
+        // the live data or the ROUTES fallback is what's currently available.
+        const d0 = cached.find(d => d.direction_id === 0);
+        const d1 = cached.find(d => d.direction_id === 1);
+        const fallback = ROUTES[line] || ['', ''];
+        return [
+            d1 ? d1.headsign : fallback[0],
+            d0 ? d0.headsign : fallback[1]
+        ];
     }
+    ensureRouteDirections(line);
+    return ROUTES[line] || ['', ''];
+}
+function getDirLabel(line, directionId) {
+    const labels = getRouteLabels(line);
+    return directionId === 0 ? labels[1] : labels[0];
 }
 async function fetchStopArrivals(stop) {
     stopPanelBody.innerHTML = '<div class="side-panel-empty">A carregar...</div>';
     try {
-        const r = await fetch(`https://stcp-proxy.onrender.com/?stop=${stop.id}`);
+        const r = await fetch(`${PROXY_BASE}/?stop=${stop.id}`);
         renderArrivals(await r.json(), stop);
     } catch (e) {
         stopPanelBody.innerHTML = '<div class="side-panel-empty">Erro ao carregar dados <button class="retry-btn" data-action="retry-stop">↻ Retry</button></div>';
@@ -638,14 +656,14 @@ async function openStopPanel(stop) {
     }, 1000);
 }
 async function buildSidebar() {
-    await ensureSHAPES();
-    const lines = Object.keys(SHAPES).sort((a, b) => {
+    const lines = Object.keys(ROUTES).sort((a, b) => {
         const aNum = parseInt(a), bNum = parseInt(b);
         if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
         if (!isNaN(aNum)) return -1;
         if (!isNaN(bNum)) return 1;
         return a.localeCompare(b);
     });
+    document.getElementById('route-count').textContent = `${lines.length} Linhas`;
     const arrowSvg    = `<svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M9 1l4 4-4 4M5 9L1 5l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     const circularSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 0 1 7.39 16.74M12 2v4M19.39 18.74l-3.06-1.47M12 22a10 10 0 0 1-7.39-16.74M12 22v-4M4.61 5.26l3.06 1.47" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
     function renderList(filter) {
@@ -675,32 +693,11 @@ async function buildSidebar() {
     renderList('');
     searchInput.addEventListener('input', e => renderList(e.target.value));
 }
-function getRouteStops(line, directionId) {
-    const key = `${line}|${directionId}`;
-    if (routeStopCache[key]) return routeStopCache[key];
-    if (!cachedStops || !SHAPES[line]) return [];
-    const wantDir = directionId === 0 ? '1' : '2';
-    const variantKey = Object.keys(SHAPES[line]).find(k => k.startsWith(`Dir ${wantDir}`)) || Object.keys(SHAPES[line])[0];
-    if (!variantKey) return [];
-    const coords = SHAPES[line][variantKey];
-    const routeSet = new Set(coords.map(([la, lo]) => `${la},${lo}`));
-    const ordered = [];
-    const seen = new Set();
-    coords.forEach(([la, lo]) => {
-        const k = `${la},${lo}`;
-        if (!routeSet.has(k) || seen.has(k)) return;
-        const stop = cachedStops.find(s => s.lat === la && s.lng === lo);
-        if (stop) { ordered.push(stop); seen.add(k); }
-    });
-    routeStopCache[key] = ordered;
-    return ordered;
-}
 function dist2(lat1, lng1, lat2, lng2) {
     const dlat = lat1 - lat2, dlng = (lng1 - lng2) * Math.cos(lat1 * Math.PI / 180);
     return dlat * dlat + dlng * dlng;
 }
 function getNextStop(bus) {
-    if (!cachedStops) return null;
     const stops = getRouteStops(bus.routeId, bus.directionId);
     if (!stops.length) return null;
     let closestIdx = 0, closestD = Infinity;
@@ -714,12 +711,19 @@ function getNextStop(bus) {
               + (next.lng - stops[closestIdx].lng) * (bus.lng - stops[closestIdx].lng);
     return dot > 0 ? next : stops[closestIdx];
 }
+function getRouteStops(line, directionId) {
+    const key = `${line}_${directionId}`;
+    if (routeStopsCache[key]) return routeStopsCache[key];
+    fetchRouteFull(line, directionId).catch(() => {});
+    return [];
+}
+
 function updateBusPanel() {
     if (stopPanel.classList.contains('visible') || !selectedLine) {
         busPanel.classList.remove('visible');
         return;
     }
-    const info  = ROUTES[selectedLine];
+    const info  = getRouteLabels(selectedLine);
     const color = getBusColor(selectedLine);
     document.getElementById('bus-panel-badge').textContent      = lineLabel(selectedLine);
     document.getElementById('bus-panel-badge').style.background = color;
@@ -787,85 +791,74 @@ function selectLine(line, renderListFn) {
     variantBtns.innerHTML = '';
     variantBar.classList.add('visible');
     const color = getBusColor(line);
-    const info  = ROUTES[line];
-    Object.keys(SHAPES[line]).forEach((v, i) => {
-        const b = document.createElement('button');
-        b.className = 'vbtn';
-        if (v === 'Dir 1 v0' && info)      b.textContent = info[1];
-        else if (v === 'Dir 2 v0' && info) b.textContent = info[0];
-        else                               b.textContent = v;
-        b.addEventListener('click', () => {
-            document.querySelectorAll('.vbtn').forEach(x => x.classList.remove('active'));
-            b.classList.add('active');
-            b.style.setProperty('--vbtn-color', color);
-            selectedDirection = v.startsWith('Dir 2') ? 1 : 0;
-            showRouteFromSidebar(line, v);
-            updateBusPanel();
+
+    ensureRouteDirections(line, (dirs) => {
+        if (selectedLine !== line) return;
+        variantBtns.innerHTML = '';
+        
+        dirs.forEach((dir, i) => {
+            const b = document.createElement('button');
+            b.className = 'vbtn';
+            b.textContent = dir.headsign || `Sentido ${dir.direction_id}`;
+            b.addEventListener('click', () => {
+                document.querySelectorAll('.vbtn').forEach(x => x.classList.remove('active'));
+                b.classList.add('active');
+                b.style.setProperty('--vbtn-color', color);
+                selectedDirection = dir.direction_id;
+                showRouteFromSidebar(line, dir.direction_id);
+                updateBusPanel();
+            });
+            variantBtns.appendChild(b);
+            if (i === 0) b.click();
         });
-        variantBtns.appendChild(b);
-        if (i === 0) b.click();
+        updateBusPanel();
     });
-    updateBusPanel();
 }
 function drawRoutePolyline(coords, color, weight, extra = {}) {
     currentRouteLayer = L.polyline(coords, { color, weight, opacity: 1, lineJoin: 'round', ...extra }).addTo(map);
 }
-async function addStopsAlongRoute(coords, color) {
-    const stops = await loadStops();
-    const pointSet = new Set(coords.map(([la, lo]) => `${la},${lo}`));
+let routeRequestId = 0;
+function renderRouteStopMarkers(stops, color) {
     stops.forEach(stop => {
-        if (!pointSet.has(`${stop.lat},${stop.lng}`)) return;
         stopLayers.push(makeStopMarker(stop, { radius: 4, fillColor: color }));
     });
 }
-function showRouteFromSidebar(line, variant) {
-    clearRouteLayer();
-    routeSource = 'sidebar';
-    const coords = SHAPES[line][variant];
-    const color  = getBusColor(line);
-    drawRoutePolyline(coords, color, 4, { lineCap: 'round' });
-    map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
-    addStopsAlongRoute(coords, color);
-}
-async function getBusShapeCoords(line, directionId) {
-    const csv = await loadShapesCSV();
-    const rows = csv.split('\n');
-    const circular = ['300', '301', '302', '303'].includes(line.toString());
-    const targetPrefix = `${line}_0_${circular ? '3' : directionId + 1}`;
-    let detectedVariant = null;
-    const pts = [];
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i].split(',');
-        if (row.length < 5) continue;
-        const shapeId = row[3];
-        if (!shapeId.startsWith(targetPrefix)) continue;
-        if (!detectedVariant) detectedVariant = shapeId;
-        if (shapeId !== detectedVariant) continue;
-        pts.push({ lat: parseFloat(row[0]), lng: parseFloat(row[1]), seq: parseInt(row[4]) });
-    }
-    pts.sort((a, b) => a.seq - b.seq);
-    return pts.map(p => [p.lat, p.lng]);
-}
-async function drawRouteFromBus(line, directionId) {
+async function showRouteFromSidebar(line, directionId) {
+    const reqId = ++routeRequestId;
     closeStopPanel();
     clearRouteLayer();
-    routeSource = 'bus';
     try {
-        const coords = await getBusShapeCoords(line, directionId);
+        const { coords, stops } = await fetchRouteFull(line, directionId);
+        if (reqId !== routeRequestId) return;
+        if (!coords.length) return;
+        const color = getBusColor(line);
+        drawRoutePolyline(coords, color, 4, { lineCap: 'round' });
+        map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
+        renderRouteStopMarkers(stops, color);
+        if (reqId !== routeRequestId) { clearRouteLayer(); return; }
+    } catch (e) { console.error(e); }
+}
+async function drawRouteFromBus(line, directionId) {
+    const reqId = ++routeRequestId;
+    closeStopPanel();
+    clearRouteLayer();
+    try {
+        const { coords, stops } = await fetchRouteFull(line, directionId);
+        if (reqId !== routeRequestId) return;
         if (!coords.length) return;
         const color = getBusColor(line);
         drawRoutePolyline(coords, color, 3, { interactive: false });
-        await addStopsAlongRoute(coords, color);
+        renderRouteStopMarkers(stops, color);
+        if (reqId !== routeRequestId) { clearRouteLayer(); return; }
     } catch (e) { console.error(e); }
 }
 function clearRouteLayer() {
     if (currentRouteLayer) { map.removeLayer(currentRouteLayer); currentRouteLayer = null; }
     stopLayers.forEach(l => map.removeLayer(l));
     stopLayers = [];
-    routeSource = null;
 }
 function formatTimestamp(bus) {
-    const raw = bus?.timestamp ?? bus?.ts ?? bus?.time ?? null;
+    const raw = bus?.timestamp ?? null;
     if (typeof raw === 'number' && raw > 1000000000) return new Date(raw * 1000).toLocaleTimeString('pt-PT');
     if (typeof raw === 'string') return new Date(raw).toLocaleTimeString('pt-PT');
     return new Date().toLocaleTimeString('pt-PT');
@@ -875,7 +868,7 @@ async function updateBuses() {
     try {
         let data;
         try {
-            const r = await fetch('https://stcp-proxy.onrender.com/', { signal: AbortSignal.timeout(5000) });
+            const r = await fetch(`${PROXY_BASE}/`, { signal: AbortSignal.timeout(5000) });
             const json = await r.json();
             if (Array.isArray(json) && json.length) data = json;
         } catch (e) {}
@@ -888,7 +881,7 @@ async function updateBuses() {
             const { id, lat, lng: lon, routeId: line, bearing, directionId } = bus;
             if (!lat || !lon) return;
             activeIds.add(id);
-            const dirText = ROUTES[line] ? ROUTES[line][directionId === 0 ? 1 : 0] : directionId;
+            const dirText = getDirLabel(line, directionId);
             const color = getBusColor(line);
             const popupContent = `<span class="bus-popup-badge" style="--bus-color: ${color}">${lineLabel(line)}</span> <span class="bus-popup-dir">${dirText}</span><br><span class="bus-popup-id">${id}</span>`;
             const marker = busMarkers[id];
@@ -938,35 +931,8 @@ document.getElementById('bus-panel-close').addEventListener('click', () => {
     variantBar.classList.remove('visible');
     variantBtns.innerHTML = '';
 });
-if (window.innerWidth <= 768) {
-    const dash = document.getElementById('dashboard');
-    let dashTimer = setTimeout(() => dash.classList.add('hidden'), 3000);
-    map.on('click', () => {
-        dash.classList.remove('hidden');
-        clearTimeout(dashTimer);
-        dashTimer = setTimeout(() => dash.classList.add('hidden'), 3000);
-    });
-}
-let allStopsVisible = false;
-let allStopMarkers  = [];
-async function toggleAllStops() {
-    const btn = document.getElementById('stops-btn');
-    if (allStopsVisible) {
-        allStopMarkers.forEach(m => map.removeLayer(m));
-        allStopMarkers = [];
-        allStopsVisible = false;
-        btn.classList.remove('active');
-        btn.querySelector('svg').style.stroke = 'var(--muted2)';
-        return;
-    }
-    allStopsVisible = true;
-    btn.classList.add('active');
-    btn.querySelector('svg').style.stroke = 'var(--c-blue)';
-    (await loadStops()).forEach(stop => {
-        allStopMarkers.push(makeStopMarker(stop, { radius: 3, weight: 1.5, fillColor: '#555' }));
-    });
-}
-document.getElementById('stops-btn').addEventListener('click', toggleAllStops);
+
 </script>
+
 </body>
 </html>
