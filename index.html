@@ -180,7 +180,7 @@
             top: 80px; /* just below the #dashboard box */
             right: 10px;
             max-width: calc(100vw - 20px);
-            z-index: 1600;
+            z-index: 1400; /* below the sidebar and side panels (1500) */
             display: none;
             align-items: flex-start;
             gap: 9px;
@@ -520,11 +520,14 @@ function getBusColor(line) {
     return '#ffffff';
 }
 function lineLabel(line) { return line === '107' ? 'ZC' : line; }
-const map = L.map('map', { center: [41.157, -8.585], zoom: 13, zoomControl: false });
+const map = L.map('map', { center: [41.157, -8.585], zoom: 13, minZoom: 12, zoomControl: false, preferCanvas: true });
 L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=fede03a2-c7f6-4c7f-a524-d51e37c2017c', {
     attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 20
 }).addTo(map);
+// Keep Leaflet in sync with its container: the sidebar collapse resizes #map,
+// but Leaflet only re-measures itself when told to.
+new ResizeObserver(() => map.invalidateSize({ animate: false })).observe(document.getElementById('map'));
 let isZooming    = false;
 const routeFullCache = {};
 const routeStopsCache = {};
