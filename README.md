@@ -11,5 +11,5 @@ STCP bus network explorer with routes, stops and live positions via stcp-proxy.
 ## What it shows
 
 - Routes and directions
-- Stops and realtime
+- Stops and real arrival times
 - Real-time bus positions via [stcp-proxy](https://github.com/NunoPTx/stcp-proxy)
