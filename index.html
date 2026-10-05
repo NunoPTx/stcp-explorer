@@ -629,8 +629,9 @@ const PROXY_BASE = 'https://stcp-proxy.onrender.com';
 function fetchRouteFull(line, directionId) {
     const key = `${line}_${directionId}`;
     if (routeFullCache[key]) return routeFullCache[key];
+    const apiLine = line === '107' ? 'ZC' : line;
     const promise = (async () => {
-        const r = await fetch(`${PROXY_BASE}/route-full/${line}?direction_id=${directionId}`);
+        const r = await fetch(`${PROXY_BASE}/route-full/${apiLine}?direction_id=${directionId}`);
         const data = await r.json();
         const coords = (data.shape || []).map(p => [p[0], p[1]]);
         const stops = (data.stops || []).map(s => ({ id: s.stop_id, name: s.stop_name, lat: s.lat, lng: s.lon }));
@@ -643,7 +644,8 @@ function fetchRouteFull(line, directionId) {
 }
 
 async function fetchRouteDirections(line) {
-    const r = await fetch(`${PROXY_BASE}/route-directions/${line}`);
+    const apiLine = line === '107' ? 'ZC' : line;
+    const r = await fetch(`${PROXY_BASE}/route-directions/${apiLine}`);
     const data = await r.json();
     return data.directions || [];
 }
