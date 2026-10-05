@@ -19,7 +19,7 @@
             --border:  #25282f;
             --border2: #2e3138;
             --text:    #f0f1f5;
-            --muted:   #6b7080;
+            --muted:   #9098a8;
             --muted2:  #9098a8;
             --panel-w: 360px;
             --c-blue:   #187ec2;
@@ -113,7 +113,7 @@
             border-radius: 5px;
             padding: 4px 10px;
             font-size: 11px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.12s;
             line-height: 1.4;
@@ -169,6 +169,44 @@
         }
         .gps-button:active { transform: scale(0.9); background: var(--c-blue); }
         .gps-button:active svg { stroke: #000; }
+        #stops-btn {
+            bottom: max(85px, env(safe-area-inset-bottom) + 67px);
+            border: 1.5px solid var(--border2);
+            box-shadow: none;
+        }
+        #stops-btn.active { border-color: var(--c-blue); box-shadow: 0 0 15px rgba(26,126,200,0.2); }
+        #stale-warning {
+            position: absolute;
+            top: 80px; /* just below the #dashboard box */
+            right: 10px;
+            max-width: calc(100vw - 20px);
+            z-index: 1600;
+            display: none;
+            align-items: flex-start;
+            gap: 9px;
+            width: 260px;
+            background: var(--panel);
+            border: 1px solid var(--border2);
+            border-left: 3px solid var(--c-red);
+            border-radius: 8px;
+            padding: 11px 32px 11px 13px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+        }
+        #stale-warning.visible { display: flex; }
+        #stale-warning svg { flex-shrink: 0; margin-top: 1px; stroke: var(--c-red); }
+        #stale-warning-title { font-weight: 400; font-size: 16px; margin-bottom: 2px; }
+        #stale-warning-sub { color: var(--muted2); font-size: 11px; line-height: 1.4; }
+        #stale-warning-close {
+            position: absolute; top: 8px; right: 8px;
+            background: none; border: none; color: var(--muted);
+            cursor: pointer; font-size: 13px; padding: 2px 4px; line-height: 1;
+        }
+        #stale-warning-close:hover { color: var(--text); }
+        /* variant without a time line: center icon + title vertically */
+        #stale-warning.no-time { align-items: center; }
+        #stale-warning.no-time svg { margin-top: 0; }
+        #stale-warning.no-time #stale-warning-title { margin-bottom: 0; }
+        #stale-warning.no-time #stale-warning-close { top: 50%; transform: translateY(-50%); }
         .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--panel); }
         .leaflet-popup-content-wrapper {
             color: var(--text);
@@ -340,6 +378,24 @@
     <div id="counter">A ligar...</div>
     <div id="timestamp">A aguardar dados...</div>
 </div>
+<div id="stale-warning">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <div>
+        <div id="stale-warning-title">Sem informação</div>
+        <div id="stale-warning-sub"></div>
+    </div>
+    <button id="stale-warning-close" title="Fechar">✕</button>
+</div>
+<div class="gps-button" id="stops-btn" title="Mostrar paragens">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="10" r="3"></circle>
+        <path d="M12 21s-7-7.5-7-12a7 7 0 0 1 14 0c0 4.5-7 12-7 12z"></path>
+    </svg>
+</div>
 <div class="gps-button" id="gps-btn" title="Centrar na minha localização">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--c-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
@@ -360,6 +416,7 @@ const stopPanelBody = document.getElementById('stop-panel-body');
 const busPanelBody  = document.getElementById('bus-panel-body');
 const counterEl     = document.getElementById('counter');
 const timestampEl   = document.getElementById('timestamp');
+const staleWarningEl = document.getElementById('stale-warning');
 toggleBtn.addEventListener('click', () => {
     const collapsed = sidebar.classList.toggle('collapsed');
     toggleBtn.classList.toggle('open', !collapsed);
@@ -476,6 +533,69 @@ let stopLayers        = [];
 let selectedLine      = null;
 let selectedDirection = null;
 let busMarkers = {};
+let unirMarkers = {};
+const UNIR_COLOR = '#06d6a0';
+const UNIR_ROUTES = {
+    "5001": ["Perafita (Bairro Caçadores)", "Sete Bicas (Metro) (via Angeiras)"],
+    "5002": ["Leça (Zona Comercial)", "Polo Universitário (via Custóias)"],
+    "5003": ["MAR Shopping", "Estádio do Dragão (via Anémona)"],
+    "5004": ["Paiço", "Sete Bicas (Metro)"],
+    "5005": ["Circular | Matosinhos (Câmara) (via Monte Xisto)", "Circular | Matosinhos (Câmara) (via Monte Xisto)"],
+    "5006": ["Circular | Matosinhos (Câmara) (via Guifões)", "Circular | Matosinhos (Câmara) (via Guifões)"],
+    "5007": ["Circular | Matosinhos (Mercado) (via Biquinha)", "Circular | Matosinhos (Mercado) (via Biquinha)"],
+    "5008": ["Circular | Matosinhos (Mercado) (via Seara)", "Circular | Matosinhos (Mercado) (via Seara)"],
+    "5009": ["Pampelido", "Hospital Pedro Hispano (via MAR Shopping)"],
+    "5010": ["MaiaShopping", "Matosinhos (Mercado) (via Ermesinde)"],
+    "5011": ["Valongo (Estação)", "Matosinhos (Mercado)"],
+    "5012": ["Freixieiro (Ribeiras)", "Senhora da Hora (Metro)"],
+    "5013": ["Aeroporto (Botica Metro)", "Guifões"],
+    "5014": ["Perafita (Bairro das Flores)", "Gatões"],
+    "5015": ["Ponte Moreira", "Matosinhos (Mercado) (via Padrão da Légua)"],
+    "5016": ["Paiço", "Matosinhos (Câmara)"],
+    "5017": ["Leça (Marginal)", "Estádio do Dragão"],
+    "5018": ["Angeiras", "Senhora da Hora (Metro) (via MAR Shopping)"],
+    "5019": ["Vilar do Pinheiro (Metro)", "Lavra (via Angeiras)"],
+    "5020": ["Aeroporto", "Agudela"],
+    "5021": ["Aeroporto (Botica Metro)", "Sete Bicas (Metro) (via Senhora da Hora)"],
+    "5022": ["Paiço", "Aeroporto"],
+    "5023": ["Matosinhos (Câmara)", "Maia (Fórum)"],
+    "5024": ["Lionesa", "Boavista (Casa da Música)"],
+    "5101": ["Lavra (Cabanelas)", "Sete Bicas (Metro)"],
+    "5102": ["Noturna | Aeroporto (Botica Metro)", "Padrão da Légua"],
+    "5103": ["Noturna | MAR Shopping", "Polo Universitário"],
+    "5104": ["Noturna | Valongo (Estação)", "Matosinhos (Mercado) (via Ermesinde)"],
+    "6001": ["Frejufe", "Maia (Centro) (via Catassol)"],
+    "6003": ["Circular | Maia (Fórum) (via Lionesa)", "Circular | Maia (Fórum) (via Lionesa)"],
+    "6004": ["Circular | Maia (Fórum) (via Zona Industrial)", "Circular | Maia (Fórum) (via Zona Industrial)"],
+    "6005": ["Maia (Jardiland)", "Hospital São João"],
+    "6006": ["Nogueira (Av. Primavera)", "Maia (Centro) (via Milheirós)"],
+    "6007": ["S. Pedro de Avioso", "Ermesinde (Estação)"],
+    "6008": ["S. Romão (Escola)", "Aeroporto (via Maia Shopping)"],
+    "6009": ["Vila Nova da Telha", "Maia (Centro)"],
+    "6010": ["Alto de Rindo", "Maia (Centro)"],
+    "6011": ["Vilar da Luz", "Hospital São João"],
+    "6012": ["Areosa", "TECMaia (via Maia)"],
+    "6013": ["Alfena (Escola)", "Maia (Centro)"],
+    "6014": ["Vilar da Luz (Aeródromo)", "Maia (Jardiland)"],
+    "6015": ["Folgosa (Igreja)", "Nogueira (Escola) (via Ardegães)"],
+    "6016": ["Vilar de Luz", "Castêlo da Maia"],
+    "6017": ["Maia (Centro)", "Ermesinde (Estação)"],
+    "6301": ["Paradela", "Souto da Sapateira (via Cidoi)"],
+    "6302": ["Alvarelhos (Escola)", "Souto da Sapateira (via Gueidãos)"],
+    "6303": ["Paradela", "Souto da Sapateira (via Guidões)"],
+    "6304": ["Trofa (Interface)", "Fornelo (via Lantemil)"],
+    "6305": ["Trofa (Interface)", "Polo Universitário (via EN14)"],
+    "6306": ["Santo Tirso (ERF)", "ISMAI"],
+    "6307": ["Santo Tirso (ERF)", "Alvarelhos (via Bicho)"],
+    "6308": ["Trofa (Interface)", "Trinaterra"],
+    "6310": ["Trofa (Interface)", "S. Romão (Escola) (via EN14)"],
+    "6311": ["Circular | Trofa (Interface) (via Pateiras)", "Circular | Trofa (Interface) (via Pateiras)"],
+    "6312": ["Circular | Trofa (Interface) (via Hospital)", "Circular | Trofa (Interface) (via Hospital)"],
+    "6313": ["Famalicão (CCT)", "Polo Universitário (via EN14)"],
+    "6314": ["Cêpa", "Lantemil (Zona Industrial)"],
+    "6315": ["Santo Tirso (ER)", "Guidões (Zona Industrial)"],
+    "6316": ["Trofa (Interface)", "Polo Universitário (pela A3)"],
+};
 let userMarker = null;
 let userPos    = null;
 let liveData   = [];
@@ -560,10 +680,6 @@ function ensureRouteDirections(line, onReady) {
 function getRouteLabels(line) {
     const cached = routeDirCache[line];
     if (cached && cached !== 'loading') {
-        // cached is an array of {direction_id, headsign} from the live API.
-        // Normalize to the same [dir1Label, dir0Label] string-pair shape ROUTES
-        // uses, so every consumer (info[0]/info[1]) works regardless of whether
-        // the live data or the ROUTES fallback is what's currently available.
         const d0 = cached.find(d => d.direction_id === 0);
         const d1 = cached.find(d => d.direction_id === 1);
         const fallback = ROUTES[line] || ['', ''];
@@ -866,19 +982,65 @@ function formatTimestamp(bus) {
     if (typeof raw === 'string') return new Date(raw).toLocaleTimeString('pt-PT');
     return new Date().toLocaleTimeString('pt-PT');
 }
+function formatElapsed(elapsedMinutes) {
+    if (elapsedMinutes < 60) return `há ${elapsedMinutes} minuto${elapsedMinutes === 1 ? '' : 's'}`;
+    const hours = Math.floor(elapsedMinutes / 60);
+    return `há ${hours} hora${hours === 1 ? '' : 's'}`;
+}
+let staleDismissed = false;
+let wasStale        = false;
+let lastDataMs      = Date.now();
+let lastFetchFailed = false;
+let hasGoodData     = false;
+function busTimestampMs(bus) {
+    const raw = bus?.timestamp ?? null;
+    const ms = typeof raw === 'number' && raw > 1000000000 ? raw * 1000
+        : typeof raw === 'string' ? new Date(raw).getTime() : null;
+    return (ms == null || isNaN(ms)) ? null : ms;
+}
+function checkStaleWarning(data) {
+    if (data) {
+        const ms = Math.max(...data.map(busTimestampMs).filter(v => v != null), 0);
+        if (ms > 0) { lastDataMs = ms; hasGoodData = true; }
+        else return; 
+    }
+    const elapsedMinutes = Math.floor((Date.now() - lastDataMs) / 60000);
+    const isStale = elapsedMinutes >= 2;
+    if (isStale && !wasStale) staleDismissed = false;
+    wasStale = isStale;
+    if (isStale && !staleDismissed) {
+        document.getElementById('stale-warning-title').textContent =
+            lastFetchFailed ? 'Sem atualização de dados' : 'Sem informação';
+        document.getElementById('stale-warning-sub').textContent =
+            hasGoodData ? `Última atualização ${formatElapsed(elapsedMinutes)}` : '';
+        staleWarningEl.classList.toggle('no-time', !hasGoodData);
+        staleWarningEl.classList.add('visible');
+    } else if (!isStale) {
+        staleWarningEl.classList.remove('visible');
+    }
+}
+document.getElementById('stale-warning-close').addEventListener('click', () => {
+    staleDismissed = true;
+    staleWarningEl.classList.remove('visible');
+});
 async function updateBuses() {
     if (isZooming) return;
     try {
         let data;
         try {
             const r = await fetch(`${PROXY_BASE}/`, { signal: AbortSignal.timeout(5000) });
-            const json = await r.json();
-            if (Array.isArray(json) && json.length) data = json;
+            if (r.ok) {
+                const json = await r.json();
+                if (Array.isArray(json) && json.length) data = json;
+            }
         } catch (e) {}
         if (!data || !data.length) {
-            counterEl.innerText = 'Sem dados';
+            lastFetchFailed = true;
+            counterEl.innerText = '-';
+            checkStaleWarning(); 
             return;
         }
+        lastFetchFailed = false;
         const activeIds = new Set();
         data.forEach(bus => {
             const { id, lat, lng: lon, routeId: line, bearing, directionId } = bus;
@@ -910,11 +1072,53 @@ async function updateBuses() {
         updateBusPanel();
         counterEl.innerText = `Autocarros: ${data.length}`;
         timestampEl.innerText = `Update: ${formatTimestamp(data[0])}`;
+        checkStaleWarning(data);
+    } catch (e) { console.error(e); }
+}
+
+// WIP
+async function updateUnirBuses() {
+    try {
+        const r = await fetch('https://stcp-proxy.npeixoto2007.workers.dev/unir', { signal: AbortSignal.timeout(5000) });
+        const data = await r.json();
+        if (!Array.isArray(data)) return;
+        const activeIds = new Set();
+        data.forEach(bus => {
+            const { id, lat, lng: lon, routeId } = bus;
+            if (!id || !id.startsWith('1|')) return;
+            if (!lat || !lon) return;
+            activeIds.add(id);
+            const fleetId = id.slice(2);
+            const line = (routeId || '').split(':')[1] || '';
+            const dirPart = (bus.tripId || '').split(':')[3] || '';
+            const info = UNIR_ROUTES[line];
+            const dirText = !info ? ''
+                : info[0] === info[1] ? info[0]
+                : (dirPart === '1' ? info[1] : dirPart === '2' ? info[0] : `${info[0]} ↔ ${info[1]}`);
+            const popupContent = `<span class="bus-popup-badge" style="--bus-color: ${UNIR_COLOR}">${line}</span> <span class="bus-popup-dir">${dirText}</span><br><span class="bus-popup-id">${fleetId}</span>`;
+            const marker = unirMarkers[id];
+            if (marker) {
+                marker.setLatLng([lat, lon]);
+                if (marker.getPopup().getContent() !== popupContent) marker.setPopupContent(popupContent);
+            } else {
+                const iconHtml = `<div class="bus-dot" style="--bus-color: ${UNIR_COLOR}"></div>`;
+                const m = L.marker([lat, lon], {
+                    icon: L.divIcon({ className: 'unir-custom-icon', html: iconHtml, iconSize: [14, 14], iconAnchor: [7, 7] })
+                }).addTo(map);
+                m.bindPopup(popupContent);
+                unirMarkers[id] = m;
+            }
+        });
+        Object.keys(unirMarkers).forEach(id => {
+            if (!activeIds.has(id)) { map.removeLayer(unirMarkers[id]); delete unirMarkers[id]; }
+        });
     } catch (e) { console.error(e); }
 }
 buildSidebar();
 updateBuses();
 setInterval(updateBuses, 2000);
+// updateUnirBuses();
+// setInterval(updateUnirBuses, 2000);
 document.getElementById('stop-panel-close').addEventListener('click', () => {
     closeStopPanel();
     clearRouteLayer();
@@ -934,6 +1138,37 @@ document.getElementById('bus-panel-close').addEventListener('click', () => {
     variantBar.classList.remove('visible');
     variantBtns.innerHTML = '';
 });
+let cachedStops = null;
+async function loadAllStops() {
+    if (!cachedStops) {
+        const r = await fetch(`${PROXY_BASE}/stops`, { cache: 'no-store' });
+        const data = await r.json();
+        cachedStops = (data.results || [])
+            .map(s => ({ id: s.stop_id, name: s.stop_name, lat: s.stop_lat, lng: s.stop_lon }))
+            .filter(s => !isNaN(s.lat) && !isNaN(s.lng) && s.name);
+    }
+    return cachedStops;
+}
+let allStopsVisible = false;
+let allStopMarkers  = [];
+async function toggleAllStops() {
+    const btn = document.getElementById('stops-btn');
+    if (allStopsVisible) {
+        allStopMarkers.forEach(m => map.removeLayer(m));
+        allStopMarkers = [];
+        allStopsVisible = false;
+        btn.classList.remove('active');
+        btn.querySelector('svg').style.stroke = 'var(--muted2)';
+        return;
+    }
+    allStopsVisible = true;
+    btn.classList.add('active');
+    btn.querySelector('svg').style.stroke = 'var(--c-blue)';
+    (await loadAllStops()).forEach(stop => {
+        allStopMarkers.push(makeStopMarker(stop, { radius: 3, weight: 1.5, fillColor: '#555' }));
+    });
+}
+document.getElementById('stops-btn').addEventListener('click', toggleAllStops);
 
 </script>
 
