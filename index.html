@@ -535,69 +535,6 @@ let stopLayers        = [];
 let selectedLine      = null;
 let selectedDirection = null;
 let busMarkers = {};
-let unirMarkers = {};
-const UNIR_COLOR = '#06d6a0';
-const UNIR_ROUTES = {
-    "5001": ["Perafita (Bairro Caçadores)", "Sete Bicas (Metro) (via Angeiras)"],
-    "5002": ["Leça (Zona Comercial)", "Polo Universitário (via Custóias)"],
-    "5003": ["MAR Shopping", "Estádio do Dragão (via Anémona)"],
-    "5004": ["Paiço", "Sete Bicas (Metro)"],
-    "5005": ["Circular | Matosinhos (Câmara) (via Monte Xisto)", "Circular | Matosinhos (Câmara) (via Monte Xisto)"],
-    "5006": ["Circular | Matosinhos (Câmara) (via Guifões)", "Circular | Matosinhos (Câmara) (via Guifões)"],
-    "5007": ["Circular | Matosinhos (Mercado) (via Biquinha)", "Circular | Matosinhos (Mercado) (via Biquinha)"],
-    "5008": ["Circular | Matosinhos (Mercado) (via Seara)", "Circular | Matosinhos (Mercado) (via Seara)"],
-    "5009": ["Pampelido", "Hospital Pedro Hispano (via MAR Shopping)"],
-    "5010": ["MaiaShopping", "Matosinhos (Mercado) (via Ermesinde)"],
-    "5011": ["Valongo (Estação)", "Matosinhos (Mercado)"],
-    "5012": ["Freixieiro (Ribeiras)", "Senhora da Hora (Metro)"],
-    "5013": ["Aeroporto (Botica Metro)", "Guifões"],
-    "5014": ["Perafita (Bairro das Flores)", "Gatões"],
-    "5015": ["Ponte Moreira", "Matosinhos (Mercado) (via Padrão da Légua)"],
-    "5016": ["Paiço", "Matosinhos (Câmara)"],
-    "5017": ["Leça (Marginal)", "Estádio do Dragão"],
-    "5018": ["Angeiras", "Senhora da Hora (Metro) (via MAR Shopping)"],
-    "5019": ["Vilar do Pinheiro (Metro)", "Lavra (via Angeiras)"],
-    "5020": ["Aeroporto", "Agudela"],
-    "5021": ["Aeroporto (Botica Metro)", "Sete Bicas (Metro) (via Senhora da Hora)"],
-    "5022": ["Paiço", "Aeroporto"],
-    "5023": ["Matosinhos (Câmara)", "Maia (Fórum)"],
-    "5024": ["Lionesa", "Boavista (Casa da Música)"],
-    "5101": ["Lavra (Cabanelas)", "Sete Bicas (Metro)"],
-    "5102": ["Noturna | Aeroporto (Botica Metro)", "Padrão da Légua"],
-    "5103": ["Noturna | MAR Shopping", "Polo Universitário"],
-    "5104": ["Noturna | Valongo (Estação)", "Matosinhos (Mercado) (via Ermesinde)"],
-    "6001": ["Frejufe", "Maia (Centro) (via Catassol)"],
-    "6003": ["Circular | Maia (Fórum) (via Lionesa)", "Circular | Maia (Fórum) (via Lionesa)"],
-    "6004": ["Circular | Maia (Fórum) (via Zona Industrial)", "Circular | Maia (Fórum) (via Zona Industrial)"],
-    "6005": ["Maia (Jardiland)", "Hospital São João"],
-    "6006": ["Nogueira (Av. Primavera)", "Maia (Centro) (via Milheirós)"],
-    "6007": ["S. Pedro de Avioso", "Ermesinde (Estação)"],
-    "6008": ["S. Romão (Escola)", "Aeroporto (via Maia Shopping)"],
-    "6009": ["Vila Nova da Telha", "Maia (Centro)"],
-    "6010": ["Alto de Rindo", "Maia (Centro)"],
-    "6011": ["Vilar da Luz", "Hospital São João"],
-    "6012": ["Areosa", "TECMaia (via Maia)"],
-    "6013": ["Alfena (Escola)", "Maia (Centro)"],
-    "6014": ["Vilar da Luz (Aeródromo)", "Maia (Jardiland)"],
-    "6015": ["Folgosa (Igreja)", "Nogueira (Escola) (via Ardegães)"],
-    "6016": ["Vilar de Luz", "Castêlo da Maia"],
-    "6017": ["Maia (Centro)", "Ermesinde (Estação)"],
-    "6301": ["Paradela", "Souto da Sapateira (via Cidoi)"],
-    "6302": ["Alvarelhos (Escola)", "Souto da Sapateira (via Gueidãos)"],
-    "6303": ["Paradela", "Souto da Sapateira (via Guidões)"],
-    "6304": ["Trofa (Interface)", "Fornelo (via Lantemil)"],
-    "6305": ["Trofa (Interface)", "Polo Universitário (via EN14)"],
-    "6306": ["Santo Tirso (ERF)", "ISMAI"],
-    "6307": ["Santo Tirso (ERF)", "Alvarelhos (via Bicho)"],
-    "6308": ["Trofa (Interface)", "Trinaterra"],
-    "6310": ["Trofa (Interface)", "S. Romão (Escola) (via EN14)"],
-    "6311": ["Circular | Trofa (Interface) (via Pateiras)", "Circular | Trofa (Interface) (via Pateiras)"],
-    "6312": ["Circular | Trofa (Interface) (via Hospital)", "Circular | Trofa (Interface) (via Hospital)"],
-    "6313": ["Famalicão (CCT)", "Polo Universitário (via EN14)"],
-    "6314": ["Cêpa", "Lantemil (Zona Industrial)"],
-    "6315": ["Santo Tirso (ER)", "Guidões (Zona Industrial)"],
-    "6316": ["Trofa (Interface)", "Polo Universitário (pela A3)"],
-};
 let userMarker = null;
 let userPos    = null;
 let liveData   = [];
@@ -1080,49 +1017,9 @@ async function updateBuses() {
     } catch (e) { console.error(e); }
 }
 
-// WIP
-async function updateUnirBuses() {
-    try {
-        const r = await fetch('https://stcp-proxy.npeixoto2007.workers.dev/unir', { signal: AbortSignal.timeout(5000) });
-        const data = await r.json();
-        if (!Array.isArray(data)) return;
-        const activeIds = new Set();
-        data.forEach(bus => {
-            const { id, lat, lng: lon, routeId } = bus;
-            if (!id || !id.startsWith('1|')) return;
-            if (!lat || !lon) return;
-            activeIds.add(id);
-            const fleetId = id.slice(2);
-            const line = (routeId || '').split(':')[1] || '';
-            const dirPart = (bus.tripId || '').split(':')[3] || '';
-            const info = UNIR_ROUTES[line];
-            const dirText = !info ? ''
-                : info[0] === info[1] ? info[0]
-                : (dirPart === '1' ? info[1] : dirPart === '2' ? info[0] : `${info[0]} ↔ ${info[1]}`);
-            const popupContent = `<span class="bus-popup-badge" style="--bus-color: ${UNIR_COLOR}">${line}</span> <span class="bus-popup-dir">${dirText}</span><br><span class="bus-popup-id">${fleetId}</span>`;
-            const marker = unirMarkers[id];
-            if (marker) {
-                marker.setLatLng([lat, lon]);
-                if (marker.getPopup().getContent() !== popupContent) marker.setPopupContent(popupContent);
-            } else {
-                const iconHtml = `<div class="bus-dot" style="--bus-color: ${UNIR_COLOR}"></div>`;
-                const m = L.marker([lat, lon], {
-                    icon: L.divIcon({ className: 'unir-custom-icon', html: iconHtml, iconSize: [14, 14], iconAnchor: [7, 7] })
-                }).addTo(map);
-                m.bindPopup(popupContent);
-                unirMarkers[id] = m;
-            }
-        });
-        Object.keys(unirMarkers).forEach(id => {
-            if (!activeIds.has(id)) { map.removeLayer(unirMarkers[id]); delete unirMarkers[id]; }
-        });
-    } catch (e) { console.error(e); }
-}
 buildSidebar();
 updateBuses();
 setInterval(updateBuses, 2000);
-// updateUnirBuses();
-// setInterval(updateUnirBuses, 2000);
 document.getElementById('stop-panel-close').addEventListener('click', () => {
     closeStopPanel();
     clearRouteLayer();
