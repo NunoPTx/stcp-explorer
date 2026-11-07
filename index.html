@@ -172,10 +172,10 @@
         #stops-btn.active { border-color: var(--c-blue); box-shadow: 0 0 15px rgba(24,126,194,0.2); }
         #stale-warning {
             position: absolute;
-            top: 80px; /* just below the #dashboard box */
+            top: 80px;
             right: 10px;
             max-width: calc(100vw - 20px);
-            z-index: 1400; /* below the sidebar and side panels (1500) */
+            z-index: 1400;
             display: none;
             align-items: flex-start;
             gap: 9px;
@@ -197,7 +197,6 @@
             cursor: pointer; font-size: 13px; padding: 2px 4px; line-height: 1;
         }
         #stale-warning-close:hover { color: var(--text); }
-        /* variant without a time line: center icon + title vertically */
         #stale-warning.no-time { align-items: center; }
         #stale-warning.no-time svg { margin-top: 0; }
         #stale-warning.no-time #stale-warning-title { margin-bottom: 0; }
