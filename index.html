@@ -21,14 +21,10 @@
             --border2: #2e3138;
             --text:    #f0f1f5;
             --muted:   #9098a8;
-            --muted2:  #9098a8;
             --panel-w: 360px;
             --c-blue:   #187ec2;
-            --c-yellow: #fcd116;
             --c-green:  #00ac00;
             --c-red:    #ff0000;
-            --c-orange: #ff7900;
-            --c-purple: #a347ff;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         button, input, select, textarea { font-family: inherit; }
@@ -109,7 +105,7 @@
         #variant-btns { display: flex; flex-wrap: wrap; gap: 5px; }
         .vbtn {
             background: var(--bg);
-            color: var(--muted2);
+            color: var(--muted);
             border: 1px solid var(--border2);
             border-radius: 5px;
             padding: 4px 10px;
@@ -141,8 +137,6 @@
         }
         #toggle-btn.open { left: 370px; }
         #map { flex: 1; height: 100vh; background: #111; }
-        .leaflet-top.leaflet-left { top: 50px; }
-        .leaflet-control-zoom { display: none; }
         @media (max-width: 768px) {
             body { position: relative; overflow: visible; }
             html, body { height: 100dvh; max-height: 100dvh; }
@@ -166,7 +160,7 @@
             pointer-events: auto; transition: all 0.2s ease;
             bottom: max(30px, env(safe-area-inset-bottom) + 12px);
             border: 1.5px solid var(--c-blue);
-            box-shadow: 0 0 15px rgba(26,126,200,0.2);
+            box-shadow: 0 0 15px rgba(24,126,194,0.2);
         }
         .gps-button:active { transform: scale(0.9); background: var(--c-blue); }
         .gps-button:active svg { stroke: #000; }
@@ -175,7 +169,7 @@
             border: 1.5px solid var(--border2);
             box-shadow: none;
         }
-        #stops-btn.active { border-color: var(--c-blue); box-shadow: 0 0 15px rgba(26,126,200,0.2); }
+        #stops-btn.active { border-color: var(--c-blue); box-shadow: 0 0 15px rgba(24,126,194,0.2); }
         #stale-warning {
             position: absolute;
             top: 80px; /* just below the #dashboard box */
@@ -196,7 +190,7 @@
         #stale-warning.visible { display: flex; }
         #stale-warning svg { flex-shrink: 0; margin-top: 1px; stroke: var(--c-red); }
         #stale-warning-title { font-weight: 400; font-size: 16px; margin-bottom: 2px; }
-        #stale-warning-sub { color: var(--muted2); font-size: 11px; line-height: 1.4; }
+        #stale-warning-sub { color: var(--muted); font-size: 11px; line-height: 1.4; }
         #stale-warning-close {
             position: absolute; top: 8px; right: 8px;
             background: none; border: none; color: var(--muted);
@@ -228,7 +222,7 @@
         .neon-box {
             width: 12px; height: 12px;
             border: 2px solid var(--c-blue);
-            background: rgba(26, 126, 200, 0.4);
+            background: rgba(24, 126, 194, 0.4);
             box-shadow: 0 0 10px var(--c-blue), inset 0 0 4px var(--c-blue);
             animation: pulse-neon 2s infinite;
             box-sizing: border-box;
@@ -285,7 +279,7 @@
         .bus-panel-dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.5); flex-shrink: 0; }
         .bus-panel-id { font-size: 12px; font-weight: 700; color: var(--text); flex: 1; }
         .bus-panel-nextstop::before { content: '⬦ '; font-size: 9px; color: var(--muted); }
-        #stop-panel-badge { background: var(--border2); color: var(--muted2); }
+        #stop-panel-badge { background: var(--border2); color: var(--muted); }
         #stop-panel-close, #bus-panel-close, #stop-panel-reload {
             background: none; border: none; color: var(--muted); cursor: pointer;
             font-size: 13px; padding: 2px 4px; flex-shrink: 0; line-height: 1;
@@ -298,16 +292,6 @@
         .stop-arrival-time-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex-shrink: 0; }
         .stop-arrival-delay { font-size: 9px; font-weight: 600; line-height: 1; }
         .panel-info-col { flex: 1; min-width: 0; }
-        .retry-btn {
-            margin-left: 8px;
-            background: none;
-            border: 1px solid var(--border2);
-            color: var(--text);
-            border-radius: 4px;
-            padding: 2px 8px;
-            cursor: pointer;
-            font-size: 11px;
-        }
         .stop-arrival-badge, .bus-popup-badge {
             min-width: 36px; height: 20px; border-radius: 4px;
             align-items: center; justify-content: center;
@@ -315,7 +299,7 @@
         }
         .stop-arrival-badge { display: flex; flex-shrink: 0; }
         .bus-popup-badge { display: inline-flex; padding: 0 6px; vertical-align: middle; background-color: var(--bus-color); }
-        .bus-popup-dir { color: var(--muted2); font-weight: 600; }
+        .bus-popup-dir { color: var(--muted); font-weight: 600; }
         .bus-popup-id { color: var(--muted); font-size: 11px; }
         .route-endpoint, #bus-panel-title, #stop-panel-name, .bus-panel-nextstop, .stop-arrival-dest {
             overflow: hidden;
@@ -324,7 +308,7 @@
         }
         .route-endpoint { font-size: 12px; color: var(--text); font-weight: 600; line-height: 1.3; min-width: 0; flex-shrink: 1; }
         #bus-panel-title, #stop-panel-name { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.3; }
-        .bus-panel-nextstop { font-size: 10px; color: var(--muted2); margin-top: 1px; }
+        .bus-panel-nextstop { font-size: 10px; color: var(--muted); margin-top: 1px; }
         .stop-arrival-dest { font-size: 11px; color: var(--text); flex: 1; min-width: 0; }
         .clickable { cursor: pointer; }
     </style>
@@ -333,14 +317,14 @@
 <button id="toggle-btn" class="open">&#8249;</button>
 <div id="sidebar">
     <div id="sidebar-header">
-        <div class="logo-mark" id="logo-mark"></div>
+        <div class="logo-mark"><img src="https://stcp.pt/media/cache/favicon/uploads/favicon.png" alt="STCP"></div>
         <div id="header-text">
             <h1>STCP</h1>
             <p id="route-count">Linhas</p>
         </div>
     </div>
     <div id="search-wrap">
-        <input id="search" type="text" placeholder="Escolha uma linha">
+        <input id="search" type="text" placeholder="Escolha uma linha ou destino">
     </div>
     <div id="variant-bar">
         <div id="variant-label">Escolher variante</div>
@@ -349,11 +333,11 @@
     <div id="route-list"></div>
 </div>
 <div id="bus-panel" class="side-panel">
-    <div id="bus-panel-header" class="side-panel-header">
+    <div class="side-panel-header">
         <div id="bus-panel-badge" class="side-panel-badge"></div>
         <div class="panel-info-col">
             <div id="bus-panel-title"></div>
-            <div id="bus-panel-subtitle"></div>
+            <div id="bus-panel-subtitle">Autocarros em circulação</div>
         </div>
         <button id="bus-panel-close">✕</button>
     </div>
@@ -362,7 +346,7 @@
     </div>
 </div>
 <div id="stop-panel" class="side-panel">
-    <div id="stop-panel-header" class="side-panel-header">
+    <div class="side-panel-header">
         <div id="stop-panel-badge" class="side-panel-badge"></div>
         <div class="panel-info-col">
             <div id="stop-panel-name"></div>
@@ -392,7 +376,7 @@
     <button id="stale-warning-close" title="Fechar">✕</button>
 </div>
 <div class="gps-button" id="stops-btn" title="Mostrar paragens">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="10" r="3"></circle>
         <path d="M12 21s-7-7.5-7-12a7 7 0 0 1 14 0c0 4.5-7 12-7 12z"></path>
     </svg>
@@ -404,7 +388,6 @@
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-document.getElementById('logo-mark').innerHTML = '<img src="https://stcp.pt/media/cache/favicon/uploads/favicon.png" alt="STCP">';
 const toggleBtn     = document.getElementById('toggle-btn');
 const sidebar       = document.getElementById('sidebar');
 const busPanel      = document.getElementById('bus-panel');
@@ -424,13 +407,11 @@ toggleBtn.addEventListener('click', () => {
     toggleBtn.textContent = collapsed ? '›' : '‹';
     busPanel.classList.toggle('sidebar-closed', collapsed);
     stopPanel.classList.toggle('sidebar-closed', collapsed);
-    document.body.classList.toggle('sidebar-open', !collapsed);
     if (!collapsed) {
         busPanel.classList.remove('visible');
         stopPanel.classList.remove('visible');
     }
 });
-document.body.classList.add('sidebar-open');
 const ROUTES = {
     "200": ["Bolhão", "Castelo do Queijo"],
     "401": ["Bolhão", "São Roque"],
@@ -508,7 +489,6 @@ function getBusColor(line) {
     if (!line) return '#ffffff';
     const s = line.toString().toUpperCase().trim();
     if (s.endsWith('M')) return '#000000';
-    if (s.includes('ZC')) return '#187ec2';
     const n = parseInt(s);
     if (!isNaN(n)) {
         if (n >= 100 && n <= 499) return '#187ec2';
@@ -521,6 +501,8 @@ function getBusColor(line) {
     return '#ffffff';
 }
 function lineLabel(line) { return line === '107' ? 'ZC' : line; }
+function canonicalLine(line) { return String(line).toUpperCase() === 'ZC' ? '107' : line; }
+const normalize = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 const map = L.map('map', { center: [41.157, -8.585], zoom: 13, minZoom: 12, zoomControl: false, renderer: L.canvas({ tolerance: 11 }) });
 L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=fede03a2-c7f6-4c7f-a524-d51e37c2017c', {
     attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -538,9 +520,12 @@ let busMarkers = {};
 let userMarker = null;
 let userPos    = null;
 let liveData   = [];
+let renderRouteList;
+let stopRequestId = 0;
 let _currentStop      = null;
 let _stopRefreshTimer = null;
 function closeStopPanel() {
+    stopRequestId++;
     stopPanel.classList.remove('visible');
     clearInterval(_stopRefreshTimer);
     _stopRefreshTimer = null;
@@ -565,33 +550,48 @@ document.getElementById('gps-btn').addEventListener('click', () => {
 });
 const PROXY_BASE = 'https://stcp-proxy.onrender.com';
 
+const RETRY_DELAYS = [5000, 10000, 20000];
+const CACHE_TTL = 24 * 60 * 60 * 1000;
+const retryDelay = attempt => RETRY_DELAYS[Math.min(attempt, RETRY_DELAYS.length - 1)];
+async function fetchJson(url, options, isCurrent = () => true) {
+    for (let attempt = 0; isCurrent(); attempt++) {
+        try {
+            const r = await fetch(url, options);
+            if (r.status === 200) return await r.json();
+            if (r.status === 404) return null;
+        } catch (e) {}
+        await new Promise(resolve => setTimeout(resolve, retryDelay(attempt)));
+    }
+}
+
 function fetchRouteFull(line, directionId) {
     const key = `${line}_${directionId}`;
-    if (routeFullCache[key]) return routeFullCache[key];
-    const apiLine = line === '107' ? 'ZC' : line;
-    const promise = (async () => {
-        const r = await fetch(`${PROXY_BASE}/route-full/${apiLine}?direction_id=${directionId}`);
-        const data = await r.json();
-        const coords = (data.shape || []).map(p => [p[0], p[1]]);
-        const stops = (data.stops || []).map(s => ({ id: s.stop_id, name: s.stop_name, lat: s.lat, lng: s.lon }));
-        routeStopsCache[key] = stops;
-        return { coords, stops, headsign: data.headsign || null };
-    })();
-    routeFullCache[key] = promise;
-    promise.catch(() => { delete routeFullCache[key]; });
+    const hit = routeFullCache[key];
+    if (hit && hit.expires > Date.now()) return hit.promise;
+    const promise = fetchJson(`${PROXY_BASE}/route-full/${lineLabel(line)}?direction_id=${directionId}`).then(data => {
+        const coords = ((data && data.shape) || []).map(p => [p[0], p[1]]);
+        const stops = ((data && data.stops) || []).map(s => ({ id: s.stop_id, name: s.stop_name, lat: s.lat, lng: s.lon }));
+        routeStopsCache[key] = { stops, expires: Date.now() + CACHE_TTL };
+        return { coords, stops };
+    });
+    routeFullCache[key] = { promise, expires: Date.now() + CACHE_TTL };
+    promise.catch(() => { if (routeFullCache[key]?.promise === promise) delete routeFullCache[key]; });
     return promise;
 }
 
 async function fetchRouteDirections(line) {
-    const apiLine = line === '107' ? 'ZC' : line;
-    const r = await fetch(`${PROXY_BASE}/route-directions/${apiLine}`);
-    const data = await r.json();
-    return data.directions || [];
+    const data = await fetchJson(`${PROXY_BASE}/route-directions/${lineLabel(line)}`);
+    return (data && data.directions) || [];
 }
 
 const routeDirCache = {};
+const routeDirExpiry = {};
 const routeDirListeners = {};
 function ensureRouteDirections(line, onReady) {
+    if (routeDirExpiry[line] <= Date.now()) {
+        delete routeDirCache[line];
+        delete routeDirExpiry[line];
+    }
     const cached = routeDirCache[line];
     if (cached && cached !== 'loading') { if (onReady) onReady(cached); return; }
     if (onReady) {
@@ -609,12 +609,8 @@ function ensureRouteDirections(line, onReady) {
                 return true;
             });
         routeDirCache[line] = validDirs;
+        routeDirExpiry[line] = Date.now() + CACHE_TTL;
         (routeDirListeners[line] || []).forEach(cb => cb(validDirs));
-        delete routeDirListeners[line];
-    }).catch(() => {
-        const fallback = [{ direction_id: 0, headsign: (ROUTES[line] || ['', ''])[1] }];
-        routeDirCache[line] = fallback;
-        (routeDirListeners[line] || []).forEach(cb => cb(fallback));
         delete routeDirListeners[line];
     });
 }
@@ -624,10 +620,12 @@ function getRouteLabels(line) {
         const d0 = cached.find(d => d.direction_id === 0);
         const d1 = cached.find(d => d.direction_id === 1);
         const fallback = ROUTES[line] || ['', ''];
-        return [
+        const labels = [
             d1 ? d1.headsign : fallback[0],
             d0 ? d0.headsign : fallback[1]
         ];
+        if (routeDirExpiry[line] <= Date.now()) ensureRouteDirections(line);
+        return labels;
     }
     ensureRouteDirections(line);
     return ROUTES[line] || ['', ''];
@@ -637,15 +635,12 @@ function getDirLabel(line, directionId) {
     return directionId === 0 ? labels[1] : labels[0];
 }
 async function fetchStopArrivals(stop) {
+    const token = ++stopRequestId;
     stopPanelBody.innerHTML = '<div class="side-panel-empty">A carregar...</div>';
-    try {
-        const r = await fetch(`${PROXY_BASE}/?stop=${stop.id}`);
-        renderArrivals(await r.json(), stop);
-    } catch (e) {
-        stopPanelBody.innerHTML = '<div class="side-panel-empty">Erro ao carregar dados <button class="retry-btn" data-action="retry-stop">↻ Retry</button></div>';
-    }
+    const data = await fetchJson(`${PROXY_BASE}/?stop=${stop.id}`, undefined, () => token === stopRequestId);
+    if (token === stopRequestId) renderArrivals(data || []);
 }
-function renderArrivals(data, stop) {
+function renderArrivals(data) {
     const arrivals = (Array.isArray(data) ? data : (data.arrivals || data.results || data.data || []))
         .filter(a => a.arrival_minutes !== -1);
     if (!arrivals.length) {
@@ -657,8 +652,7 @@ function renderArrivals(data, stop) {
         const mins = a.arrival_minutes ?? a.minutes ?? a.eta_minutes ?? null;
         const timeText = mins === 0 ? 'A chegar' : mins != null ? `${mins} min` : '–';
         const rawRoute = a.route_short_name || a.line || a.route || '';
-        const isZC = rawRoute === '107' || rawRoute.toString().toUpperCase() === 'ZC';
-        const colorKey = isZC ? '107' : rawRoute;
+        const colorKey = canonicalLine(rawRoute);
         const routeInfo = ROUTES[colorKey];
         const dest = a.trip_headsign || a.headsign || a.destination_name || a.destination || a.direction
             || (routeInfo ? `${routeInfo[0]} ↔ ${routeInfo[1]}` : '');
@@ -670,7 +664,7 @@ function renderArrivals(data, stop) {
         badge.addEventListener('click', (e) => {
             e.stopPropagation();
             closeStopPanel();
-            selectLine(colorKey, null);
+            selectLine(colorKey);
         });
         const destEl = document.createElement('div');
         destEl.className = 'stop-arrival-dest';
@@ -695,20 +689,20 @@ function renderArrivals(data, stop) {
         stopPanelBody.appendChild(row);
     });
 }
-async function openStopPanel(stop) {
+function openStopPanel(stop) {
     _currentStop = stop;
     busPanel.classList.remove('visible');
     stopPanel.classList.toggle('sidebar-closed', sidebar.classList.contains('collapsed'));
     document.getElementById('stop-panel-name').textContent = stop.name;
     document.getElementById('stop-panel-badge').textContent = stop.id;
     stopPanel.classList.add('visible');
-    await fetchStopArrivals(stop);
+    fetchStopArrivals(stop);
     clearInterval(_stopRefreshTimer);
     let secondsSince = 0;
     _stopRefreshTimer = setInterval(() => {
+        if (document.hidden) return;
         secondsSince++;
-        const nameEl = document.getElementById('stop-panel-name');
-        if (nameEl) nameEl.title = `Atualizado há ${secondsSince}s`;
+        document.getElementById('stop-panel-name').title = `Atualizado há ${secondsSince}s`;
         if (secondsSince >= 15) {
             secondsSince = 0;
             fetchStopArrivals(stop);
@@ -723,17 +717,18 @@ async function buildSidebar() {
         if (!isNaN(bNum)) return 1;
         return a.localeCompare(b);
     });
-    document.getElementById('route-count').textContent = `${lines.length} Linhas`;
     const arrowSvg    = `<svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M9 1l4 4-4 4M5 9L1 5l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     const circularSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 0 1 7.39 16.74M12 2v4M19.39 18.74l-3.06-1.47M12 22a10 10 0 0 1-7.39-16.74M12 22v-4M4.61 5.26l3.06 1.47" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-    function renderList(filter) {
+    function renderList() {
         routeListEl.innerHTML = '';
-        const q = (filter || '').toLowerCase().trim();
+        const q = normalize(searchInput.value);
+        let count = 0;
         lines.forEach(line => {
             const info   = ROUTES[line];
             const origin = info ? info[0] : '';
             const dest   = info ? info[1] : '';
-            if (q && !(line.toLowerCase().includes(q) || dest.toLowerCase().includes(q) || origin.toLowerCase().includes(q))) return;
+            if (q && !(normalize(line).includes(q) || normalize(dest).includes(q) || normalize(origin).includes(q))) return;
+            count++;
             const item = document.createElement('div');
             item.className = 'route-item' + (line === selectedLine ? ' active' : '');
             const badge = document.createElement('div');
@@ -746,12 +741,14 @@ async function buildSidebar() {
                 ? `<span class="route-arrow circular">${circularSvg}</span><span class="route-endpoint">${dest || origin}</span>`
                 : `<span class="route-endpoint">${origin || line}</span><span class="route-arrow">${arrowSvg}</span><span class="route-endpoint">${dest || ''}</span>`;
             item.append(badge, lbl);
-            item.addEventListener('click', () => selectLine(line, renderList));
+            item.addEventListener('click', () => selectLine(line));
             routeListEl.appendChild(item);
         });
+        document.getElementById('route-count').textContent = `${count} Linhas`;
     }
-    renderList('');
-    searchInput.addEventListener('input', e => renderList(e.target.value));
+    renderRouteList = renderList;
+    renderList();
+    searchInput.addEventListener('input', renderList);
 }
 function dist2(lat1, lng1, lat2, lng2) {
     const dlat = lat1 - lat2, dlng = (lng1 - lng2) * Math.cos(lat1 * Math.PI / 180);
@@ -773,38 +770,41 @@ function getNextStop(bus) {
 }
 function getRouteStops(line, directionId) {
     const key = `${line}_${directionId}`;
-    if (routeStopsCache[key]) return routeStopsCache[key];
-    fetchRouteFull(line, directionId).catch(() => {});
-    return [];
+    const hit = routeStopsCache[key];
+    if (!hit || hit.expires <= Date.now()) fetchRouteFull(line, directionId).catch(() => {});
+    return hit ? hit.stops : [];
 }
 
+let busPanelKey = '';
 function updateBusPanel() {
     if (stopPanel.classList.contains('visible') || !selectedLine) {
         busPanel.classList.remove('visible');
         return;
     }
     const info  = getRouteLabels(selectedLine);
+    const title = `${info[0]} ↔ ${info[1]}`;
+    const dest  = selectedDirection === 0 ? info[1] : selectedDirection === 1 ? info[0] : title;
+    const buses = liveData
+        .filter(b => b.routeId === selectedLine && (selectedDirection === null || b.directionId === selectedDirection))
+        .map(bus => ({ bus, nextStop: getNextStop(bus) }));
+    const key = [selectedLine, title, dest, ...buses.map(({ bus, nextStop }) => `${bus.id}:${nextStop ? nextStop.name : ''}`)].join('|');
+    busPanel.classList.add('visible');
+    if (key === busPanelKey) return;
+    busPanelKey = key;
     const color = getBusColor(selectedLine);
     document.getElementById('bus-panel-badge').textContent      = lineLabel(selectedLine);
     document.getElementById('bus-panel-badge').style.background = color;
-    document.getElementById('bus-panel-title').textContent      = info ? `${info[0]} ↔ ${info[1]}` : selectedLine;
-    document.getElementById('bus-panel-subtitle').textContent   = 'Autocarros em circulação';
-    const buses = liveData.filter(b =>
-        b.routeId === selectedLine && (selectedDirection === null || b.directionId === selectedDirection));
+    document.getElementById('bus-panel-title').textContent      = title;
     busPanelBody.innerHTML = '';
     if (!buses.length) {
         busPanelBody.innerHTML = '<div class="side-panel-empty">Nenhum autocarro em circulação</div>';
-        busPanel.classList.add('visible');
         return;
     }
-    const dest = info
-        ? (selectedDirection === 0 ? info[1] : selectedDirection === 1 ? info[0] : `${info[0]} ↔ ${info[1]}`)
-        : `Sentido ${selectedDirection}`;
     const dirLbl = document.createElement('div');
     dirLbl.className = 'bus-panel-dir';
     dirLbl.textContent = `→ ${dest}`;
     busPanelBody.appendChild(dirLbl);
-    buses.forEach(bus => {
+    buses.forEach(({ bus, nextStop }) => {
         const dot = document.createElement('div');
         dot.className = 'bus-panel-dot';
         dot.style.background = color;
@@ -814,7 +814,6 @@ function updateBusPanel() {
         idEl.className = 'bus-panel-id';
         idEl.textContent = bus.id;
         right.appendChild(idEl);
-        const nextStop = getNextStop(bus);
         if (nextStop) {
             const stopEl = document.createElement('div');
             stopEl.className = 'bus-panel-nextstop';
@@ -825,7 +824,7 @@ function updateBusPanel() {
         row.className = 'bus-panel-row';
         row.append(dot, right);
         row.addEventListener('click', () => {
-            drawRouteFromBus(bus.routeId, bus.directionId);
+            selectLine(bus.routeId, bus.directionId, true);
             const marker = busMarkers[bus.id];
             if (marker) {
                 map.flyTo(marker.getLatLng(), 16, { duration: 1 });
@@ -834,7 +833,6 @@ function updateBusPanel() {
         });
         busPanelBody.appendChild(row);
     });
-    busPanel.classList.add('visible');
 }
 function makeStopMarker(stop, { radius, fillColor, weight = 2, color = '#fff' }) {
     const marker = L.circleMarker([stop.lat, stop.lng], { radius, color, weight, fillColor, fillOpacity: 1, interactive: true })
@@ -843,11 +841,12 @@ function makeStopMarker(stop, { radius, fillColor, weight = 2, color = '#fff' })
     marker.on('click', (e) => { L.DomEvent.stopPropagation(e); openStopPanel(stop); });
     return marker;
 }
-function selectLine(line, renderListFn) {
+function selectLine(line, busDirectionId, byBus = false) {
     selectedLine = line;
     selectedDirection = null;
     closeStopPanel();
-    if (renderListFn) renderListFn(searchInput.value);
+    renderRouteList();
+    routeListEl.querySelector('.route-item.active')?.scrollIntoView({ block: 'nearest' });
     variantBtns.innerHTML = '';
     variantBar.classList.add('visible');
     const color = getBusColor(line);
@@ -855,23 +854,24 @@ function selectLine(line, renderListFn) {
     ensureRouteDirections(line, (dirs) => {
         if (selectedLine !== line) return;
         variantBtns.innerHTML = '';
-        
-        dirs.forEach((dir, i) => {
+        const choose = (b, dir, fromBus) => {
+            variantBtns.querySelectorAll('.vbtn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            selectedDirection = dir.direction_id;
+            showRoute(line, dir.direction_id, fromBus);
+            updateBusPanel();
+        };
+        const buttons = dirs.map(dir => {
             const b = document.createElement('button');
             b.className = 'vbtn';
             b.textContent = dir.headsign || `Sentido ${dir.direction_id}`;
-            b.addEventListener('click', () => {
-                document.querySelectorAll('.vbtn').forEach(x => x.classList.remove('active'));
-                b.classList.add('active');
-                b.style.setProperty('--vbtn-color', color);
-                selectedDirection = dir.direction_id;
-                showRouteFromSidebar(line, dir.direction_id);
-                updateBusPanel();
-            });
+            b.style.setProperty('--vbtn-color', color);
+            b.addEventListener('click', () => choose(b, dir, false));
             variantBtns.appendChild(b);
-            if (i === 0) b.click();
+            return b;
         });
-        updateBusPanel();
+        const i = byBus ? Math.max(0, dirs.findIndex(d => d.direction_id === busDirectionId)) : 0;
+        choose(buttons[i], dirs[i], byBus);
     });
 }
 function drawRoutePolyline(coords, color, weight, extra = {}) {
@@ -883,33 +883,17 @@ function renderRouteStopMarkers(stops, color) {
         stopLayers.push(makeStopMarker(stop, { radius: 4, fillColor: color }));
     });
 }
-async function showRouteFromSidebar(line, directionId) {
+async function showRoute(line, directionId, byBus) {
     const reqId = ++routeRequestId;
     closeStopPanel();
     clearRouteLayer();
     try {
         const { coords, stops } = await fetchRouteFull(line, directionId);
-        if (reqId !== routeRequestId) return;
-        if (!coords.length) return;
+        if (reqId !== routeRequestId || !coords.length) return;
         const color = getBusColor(line);
-        drawRoutePolyline(coords, color, 4, { lineCap: 'round' });
-        map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
+        drawRoutePolyline(coords, color, byBus ? 3 : 4, byBus ? { interactive: false } : { lineCap: 'round' });
+        if (!byBus) map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
         renderRouteStopMarkers(stops, color);
-        if (reqId !== routeRequestId) { clearRouteLayer(); return; }
-    } catch (e) { console.error(e); }
-}
-async function drawRouteFromBus(line, directionId) {
-    const reqId = ++routeRequestId;
-    closeStopPanel();
-    clearRouteLayer();
-    try {
-        const { coords, stops } = await fetchRouteFull(line, directionId);
-        if (reqId !== routeRequestId) return;
-        if (!coords.length) return;
-        const color = getBusColor(line);
-        drawRoutePolyline(coords, color, 3, { interactive: false });
-        renderRouteStopMarkers(stops, color);
-        if (reqId !== routeRequestId) { clearRouteLayer(); return; }
     } catch (e) { console.error(e); }
 }
 function clearRouteLayer() {
@@ -925,8 +909,12 @@ function formatTimestamp(bus) {
 }
 function formatElapsed(elapsedMinutes) {
     if (elapsedMinutes < 60) return `há ${elapsedMinutes} minuto${elapsedMinutes === 1 ? '' : 's'}`;
-    const hours = Math.floor(elapsedMinutes / 60);
-    return `há ${hours} hora${hours === 1 ? '' : 's'}`;
+    if (elapsedMinutes < 1440) {
+        const hours = Math.floor(elapsedMinutes / 60);
+        return `há ${hours} hora${hours === 1 ? '' : 's'}`;
+    }
+    const days = Math.floor(elapsedMinutes / 1440);
+    return `há ${days} dia${days === 1 ? '' : 's'}`;
 }
 let staleDismissed = false;
 let wasStale        = false;
@@ -964,71 +952,92 @@ document.getElementById('stale-warning-close').addEventListener('click', () => {
     staleDismissed = true;
     staleWarningEl.classList.remove('visible');
 });
+const shortestAngle = (from, to) => from + ((((to - from) % 360) + 540) % 360) - 180;
 async function updateBuses() {
-    if (isZooming) return;
+    if (isZooming) return true;
+    let data;
     try {
-        let data;
-        try {
-            const r = await fetch(`${PROXY_BASE}/`, { signal: AbortSignal.timeout(5000) });
-            if (r.ok) {
-                const json = await r.json();
-                if (Array.isArray(json) && json.length) data = json;
-            }
-        } catch (e) {}
-        if (!data || !data.length) {
-            lastFetchFailed = true;
-            counterEl.innerText = '-';
-            checkStaleWarning(); 
-            return;
+        const r = await fetch(`${PROXY_BASE}/`, { signal: AbortSignal.timeout(5000) });
+        if (r.status === 200) {
+            const json = await r.json();
+            if (Array.isArray(json) && json.length) data = json.map(bus => ({ ...bus, routeId: canonicalLine(bus.routeId) }));
         }
-        lastFetchFailed = false;
-        const activeIds = new Set();
-        data.forEach(bus => {
-            const { id, lat, lng: lon, routeId: line, bearing, directionId } = bus;
-            if (!lat || !lon) return;
-            activeIds.add(id);
-            const dirText = getDirLabel(line, directionId);
-            const color = getBusColor(line);
-            const popupContent = `<span class="bus-popup-badge" style="--bus-color: ${color}">${lineLabel(line)}</span> <span class="bus-popup-dir">${dirText}</span><br><span class="bus-popup-id">${id}</span>`;
-            const marker = busMarkers[id];
-            if (marker) {
-                marker.setLatLng([lat, lon]);
-                if (marker.getPopup().getContent() !== popupContent) marker.setPopupContent(popupContent);
-                const svg = marker.getElement()?.querySelector('.bus-direction');
-                if (svg) svg.style.setProperty('--bus-bearing', `${bearing}deg`);
-            } else {
-                const iconHtml = `<div class="bus-wrapper"><div class="bus-dot" style="--bus-color: ${color}"></div><svg class="bus-direction" style="--bus-bearing: ${bearing}deg" viewBox="0 0 40 40"><path d="M20 4l5 8H15z" fill="white" /></svg></div>`;
-                const m = L.marker([lat, lon], {
-                    icon: L.divIcon({ className: 'bus-custom-icon', html: iconHtml, iconSize: [40, 40], iconAnchor: [20, 20] })
-                }).addTo(map);
-                m.bindPopup(popupContent);
-                m.on('click', () => drawRouteFromBus(line, directionId));
-                busMarkers[id] = m;
+    } catch (e) {}
+    if (!data) {
+        lastFetchFailed = true;
+        counterEl.innerText = '-';
+        checkStaleWarning();
+        return false;
+    }
+    lastFetchFailed = false;
+    const activeIds = new Set();
+    data.forEach(bus => {
+        const { id, lat, lng: lon, routeId: line, bearing, directionId } = bus;
+        if (!lat || !lon) return;
+        activeIds.add(id);
+        const heading = Number(bearing) || 0;
+        const dirText = getDirLabel(line, directionId);
+        const color = getBusColor(line);
+        const popupContent = `<span class="bus-popup-badge" style="--bus-color: ${color}">${lineLabel(line)}</span> <span class="bus-popup-dir">${dirText}</span><br><span class="bus-popup-id">${id}</span>`;
+        const marker = busMarkers[id];
+        if (marker) {
+            marker.setLatLng([lat, lon]);
+            marker.bus = { line, directionId };
+            if (marker.getPopup().getContent() !== popupContent) marker.setPopupContent(popupContent);
+            const el = marker.getElement();
+            el?.querySelector('.bus-dot')?.style.setProperty('--bus-color', color);
+            const svg = el?.querySelector('.bus-direction');
+            if (svg) {
+                marker.heading = shortestAngle(marker.heading, heading);
+                svg.style.setProperty('--bus-bearing', `${marker.heading}deg`);
             }
-        });
-        Object.keys(busMarkers).forEach(id => {
-            if (!activeIds.has(id)) { map.removeLayer(busMarkers[id]); delete busMarkers[id]; }
-        });
-        liveData = data;
-        updateBusPanel();
-        counterEl.innerText = `Autocarros: ${data.length}`;
-        timestampEl.innerText = `Update: ${formatTimestamp(data[0])}`;
-        checkStaleWarning(data);
-    } catch (e) { console.error(e); }
+        } else {
+            const iconHtml = `<div class="bus-wrapper"><div class="bus-dot" style="--bus-color: ${color}"></div><svg class="bus-direction" style="--bus-bearing: ${heading}deg" viewBox="0 0 40 40"><path d="M20 4l5 8H15z" fill="white" /></svg></div>`;
+            const m = L.marker([lat, lon], {
+                icon: L.divIcon({ className: 'bus-custom-icon', html: iconHtml, iconSize: [40, 40], iconAnchor: [20, 20] })
+            }).addTo(map);
+            m.bindPopup(popupContent);
+            m.bus = { line, directionId };
+            m.heading = heading;
+            m.on('click', () => selectLine(m.bus.line, m.bus.directionId, true));
+            busMarkers[id] = m;
+        }
+    });
+    Object.keys(busMarkers).forEach(id => {
+        if (!activeIds.has(id)) { map.removeLayer(busMarkers[id]); delete busMarkers[id]; }
+    });
+    liveData = data;
+    updateBusPanel();
+    counterEl.innerText = `Autocarros: ${activeIds.size}`;
+    timestampEl.innerText = `Update: ${formatTimestamp(data[0])}`;
+    checkStaleWarning(data);
+    return true;
 }
 
+let pollTimer = null;
+let pollFailures = 0;
+let polling = false;
+async function pollBuses() {
+    if (polling) return;
+    polling = true;
+    const ok = await updateBuses().catch(e => { console.error(e); return false; });
+    polling = false;
+    pollFailures = ok ? 0 : pollFailures + 1;
+    if (!document.hidden) pollTimer = setTimeout(pollBuses, ok ? 2000 : retryDelay(pollFailures - 1));
+}
+document.addEventListener('visibilitychange', () => {
+    clearTimeout(pollTimer);
+    if (!document.hidden) pollBuses();
+});
+
 buildSidebar();
-updateBuses();
-setInterval(updateBuses, 2000);
+pollBuses();
 document.getElementById('stop-panel-close').addEventListener('click', () => {
     closeStopPanel();
     clearRouteLayer();
 });
 document.getElementById('stop-panel-reload').addEventListener('click', () => {
     if (_currentStop) fetchStopArrivals(_currentStop);
-});
-stopPanelBody.addEventListener('click', (e) => {
-    if (e.target.closest('[data-action="retry-stop"]') && _currentStop) fetchStopArrivals(_currentStop);
 });
 document.getElementById('bus-panel-close').addEventListener('click', () => {
     busPanel.classList.remove('visible');
@@ -1039,16 +1048,18 @@ document.getElementById('bus-panel-close').addEventListener('click', () => {
     variantBar.classList.remove('visible');
     variantBtns.innerHTML = '';
 });
-let cachedStops = null;
-async function loadAllStops() {
-    if (!cachedStops) {
-        const r = await fetch(`${PROXY_BASE}/stops`, { cache: 'no-store' });
-        const data = await r.json();
-        cachedStops = (data.results || [])
-            .map(s => ({ id: s.stop_id, name: s.stop_name, lat: s.stop_lat, lng: s.stop_lon }))
-            .filter(s => !isNaN(s.lat) && !isNaN(s.lng) && s.name);
+let stopsCache = null;
+function loadAllStops() {
+    if (!stopsCache || stopsCache.expires <= Date.now()) {
+        stopsCache = {
+            expires: Date.now() + CACHE_TTL,
+            promise: fetchJson(`${PROXY_BASE}/stops`, { cache: 'no-store' }).then(data =>
+                ((data && data.results) || [])
+                    .map(s => ({ id: s.stop_id, name: s.stop_name, lat: s.stop_lat, lng: s.stop_lon }))
+                    .filter(s => !isNaN(s.lat) && !isNaN(s.lng) && s.name))
+        };
     }
-    return cachedStops;
+    return stopsCache.promise;
 }
 let allStopsVisible = false;
 let allStopMarkers  = [];
@@ -1059,13 +1070,15 @@ async function toggleAllStops() {
         allStopMarkers = [];
         allStopsVisible = false;
         btn.classList.remove('active');
-        btn.querySelector('svg').style.stroke = 'var(--muted2)';
+        btn.querySelector('svg').style.stroke = 'var(--muted)';
         return;
     }
     allStopsVisible = true;
     btn.classList.add('active');
     btn.querySelector('svg').style.stroke = 'var(--c-blue)';
-    (await loadAllStops()).forEach(stop => {
+    const stops = await loadAllStops();
+    if (!allStopsVisible || allStopMarkers.length) return;
+    stops.forEach(stop => {
         allStopMarkers.push(makeStopMarker(stop, { radius: 3, weight: 1.5, fillColor: '#555' }));
     });
 }
