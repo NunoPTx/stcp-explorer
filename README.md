@@ -1,6 +1,6 @@
 # stcp-explorer
 
-STCP bus network explorer with routes, stops and live positions via stcp-proxy.
+STCP bus network explorer with routes, stops, real time and live positions via stcp-proxy.
 
 **URL:** https://nunoptx.github.io/stcp-explorer/
 
