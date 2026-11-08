@@ -148,8 +148,12 @@
             #map { width: 100vw; height: 100dvh; overflow: hidden; }
             #sidebar { position: absolute; top: 0; left: 0; bottom: 0; height: 100dvh; z-index: 1500; }
             #toggle-btn { width: 42px; height: 42px; font-size: 24px; }
+            :root { --panel-w: min(360px, 85vw); }
+            #sidebar { min-width: 0; }
             #toggle-btn.open { left: calc(var(--panel-w) - 26px); }
             .bus-wrapper { transform: scale(0.9); }
+            body.sidebar-open .side-panel,
+            body.sidebar-open #dashboard { display: none !important; }
         }
         #dashboard {
             position: absolute; top: 10px; right: 10px; z-index: 1000;
@@ -391,7 +395,7 @@
         .jp-note { padding: 7px 11px 9px; font-size: 10px; color: var(--muted); line-height: 1.4; }
     </style>
 </head>
-<body>
+<body class="sidebar-open">
 <button id="toggle-btn" class="open">&#8249;</button>
 <div id="sidebar">
     <div id="sidebar-header">
@@ -536,6 +540,7 @@ const staleWarningEl = document.getElementById('stale-warning');
 toggleBtn.addEventListener('click', () => {
     const collapsed = sidebar.classList.toggle('collapsed');
     toggleBtn.classList.toggle('open', !collapsed);
+    document.body.classList.toggle('sidebar-open', !collapsed);
     toggleBtn.textContent = collapsed ? '›' : '‹';
     busPanel.classList.toggle('sidebar-closed', collapsed);
     stopPanel.classList.toggle('sidebar-closed', collapsed);
