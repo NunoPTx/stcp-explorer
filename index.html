@@ -7,12 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        @font-face {
-            font-family: 'FrutigerLTStdCn';
-            src: url('FrutigerLTStd-Cn.woff2') format('woff2');
-            font-weight: normal;
-            font-style: normal;
-        }
         :root {
             --bg:      #111318;
             --panel:   #1a1d24;
@@ -29,7 +23,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         button, input, select, textarea { font-family: inherit; }
         body {
-            font-family: 'FrutigerLTStdCn', sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: var(--bg);
             color: var(--text);
             height: 100vh;
@@ -65,6 +59,17 @@
         #header-text h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; color: var(--text); line-height: 1.2; }
         #header-text p { font-size: 11px; color: var(--muted); margin-top: 1px; }
         #search-wrap { padding: 10px 10px 0; }
+        #op-filter { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 10px 0; }
+        #op-filter .vbtn { flex: 1; padding: 5px 0; text-align: center; }
+        #op-filter .op-btn { --vbtn-color: #4a4f5a; }
+        #op-filter .op-btn[data-grp="2"], #op-filter .op-btn[data-grp="3"], #op-filter .op-btn[data-grp="4"] { --vbtn-color: #187ec2; }
+        #op-filter .op-btn[data-grp="5"] { --vbtn-color: #fcd116; --vbtn-text: #111318; }
+        #op-filter .op-btn[data-grp="6"] { --vbtn-color: #00ac00; }
+        #op-filter .op-btn[data-grp="7"] { --vbtn-color: #ff0000; }
+        #op-filter .op-btn[data-grp="8"] { --vbtn-color: #a347ff; }
+        #op-filter .op-btn[data-grp="9"] { --vbtn-color: #ff7900; }
+        #op-filter .op-btn[data-grp="ZC"] { --vbtn-color: #187ec2; }
+        #op-filter .op-btn[data-grp="M"] { --vbtn-color: #000000; }
         #search {
             width: 100%;
             background: var(--bg);
@@ -116,7 +121,7 @@
             line-height: 1.4;
         }
         .vbtn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
-        .vbtn.active { color: #fff; font-weight: 600; border-color: transparent; background: var(--vbtn-color, var(--c-blue)); }
+        .vbtn.active { color: var(--vbtn-text, #fff); font-weight: 600; border-color: transparent; background: var(--vbtn-color, var(--c-blue)); }
         #toggle-btn {
             position: absolute;
             top: 10px;
@@ -207,7 +212,7 @@
             border: 1px solid var(--border2);
             border-radius: 8px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-            font-family: 'FrutigerLTStdCn', sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
         .leaflet-popup-content { margin: 8px 12px; font-size: 13px; }
         .leaflet-popup-close-button {
@@ -325,6 +330,18 @@
     <div id="search-wrap">
         <input id="search" type="text" placeholder="Escolha uma linha ou destino">
     </div>
+    <div id="op-filter">
+        <button class="vbtn op-btn" data-grp="2">200</button>
+        <button class="vbtn op-btn" data-grp="3">300</button>
+        <button class="vbtn op-btn" data-grp="4">400</button>
+        <button class="vbtn op-btn" data-grp="5">500</button>
+        <button class="vbtn op-btn" data-grp="6">600</button>
+        <button class="vbtn op-btn" data-grp="7">700</button>
+        <button class="vbtn op-btn" data-grp="8">800</button>
+        <button class="vbtn op-btn" data-grp="9">900</button>
+        <button class="vbtn op-btn" data-grp="ZC">ZC</button>
+        <button class="vbtn op-btn" data-grp="M">M</button>
+    </div>
     <div id="variant-bar">
         <div id="variant-label">Escolher variante</div>
         <div id="variant-btns"></div>
@@ -406,10 +423,6 @@ toggleBtn.addEventListener('click', () => {
     toggleBtn.textContent = collapsed ? '›' : '‹';
     busPanel.classList.toggle('sidebar-closed', collapsed);
     stopPanel.classList.toggle('sidebar-closed', collapsed);
-    if (!collapsed) {
-        busPanel.classList.remove('visible');
-        stopPanel.classList.remove('visible');
-    }
 });
 const ROUTES = {
     "200": ["Bolhão", "Castelo do Queijo"],
@@ -718,11 +731,14 @@ async function buildSidebar() {
     });
     const arrowSvg    = `<svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M9 1l4 4-4 4M5 9L1 5l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     const circularSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 0 1 7.39 16.74M12 2v4M19.39 18.74l-3.06-1.47M12 22a10 10 0 0 1-7.39-16.74M12 22v-4M4.61 5.26l3.06 1.47" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+    let activeGroup = null;
+    const lineGroup = line => String(line).toUpperCase().endsWith('M') ? 'M' : String(line) === '107' ? 'ZC' : String(Math.floor(parseInt(line) / 100));
     function renderList() {
         routeListEl.innerHTML = '';
         const q = normalize(searchInput.value);
         let count = 0;
         lines.forEach(line => {
+            if (activeGroup && lineGroup(line) !== activeGroup) return;
             const info   = ROUTES[line];
             const origin = info ? info[0] : '';
             const dest   = info ? info[1] : '';
@@ -748,6 +764,16 @@ async function buildSidebar() {
     renderRouteList = renderList;
     renderList();
     searchInput.addEventListener('input', renderList);
+    const opBtns = [...document.querySelectorAll('#op-filter .op-btn')];
+    const syncOpButtons = () => opBtns.forEach(b => b.classList.toggle('active', !activeGroup || b.dataset.grp === activeGroup));
+    syncOpButtons();
+    opBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            activeGroup = activeGroup === btn.dataset.grp ? null : btn.dataset.grp;
+            syncOpButtons();
+            renderList();
+        });
+    });
 }
 function dist2(lat1, lng1, lat2, lng2) {
     const dlat = lat1 - lat2, dlng = (lng1 - lng2) * Math.cos(lat1 * Math.PI / 180);
