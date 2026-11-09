@@ -1466,6 +1466,7 @@ function jpParseArrivals(data) {
             mins: a.arrival_minutes ?? a.minutes ?? a.eta_minutes,
             line: canonicalLine(a.route_short_name || a.line || a.route || ''),
             dirId: a.direction_id ?? a.directionId,
+            tripId: a.trip_id ?? a.tripId ?? null,
             head: a.trip_headsign || a.headsign || a.destination_name || a.destination || a.direction || '',
             delay: a.delay_minutes
         }))
@@ -1479,16 +1480,6 @@ function jpMatches(a) {
         return x.includes(y) || y.includes(x);
     }
     return true;
-}
-function jpPathKm(i, j) {
-    let km = 0;
-    for (let k = i; k < j; k++) {
-        const a = jpStops[k], b = jpStops[k + 1];
-        const dLat = (b.lat - a.lat) * 111.32;
-        const dLng = (b.lng - a.lng) * 111.32 * Math.cos(a.lat * Math.PI / 180);
-        km += Math.sqrt(dLat * dLat + dLng * dLng);
-    }
-    return km * 1.25;
 }
 const jpClock = mins => new Date(Date.now() + mins * 60000).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
 const jpWhen = mins => mins <= 0 ? 'A chegar' : `em ${mins} min`;
@@ -1509,7 +1500,7 @@ async function jpCalc(silent) {
     jpResults.innerHTML = '';
     const summary = document.createElement('div');
     summary.className = 'jp-summary';
-    summary.textContent = `${ei - si} paragens · ${jpPathKm(si, ei).toFixed(1)} km`;
+    summary.textContent = `${ei - si} paragens`;
     jpResults.appendChild(summary);
     if (!starts.length) {
         const empty = document.createElement('div');
@@ -1518,22 +1509,16 @@ async function jpCalc(silent) {
         jpResults.appendChild(empty);
         return;
     }
-    const estMin = Math.max(1, Math.round(jpPathKm(si, ei) / 15 * 60));
-    const used = new Set();
     starts.forEach(s => {
-        let arrMins = null, real = false;
-        const lo = s.mins + Math.max(1, estMin * 0.4), hi = s.mins + estMin * 2.5 + 5;
-        const idx = ends.findIndex((e, i) => !used.has(i) && e.mins >= lo && e.mins <= hi);
-        if (idx >= 0) { used.add(idx); arrMins = ends[idx].mins; real = true; }
-        else { arrMins = s.mins + estMin; }
-        const dur = Math.max(1, Math.round(arrMins - s.mins));
+        const e = s.tripId != null ? ends.find(x => String(x.tripId) === String(s.tripId)) : null;
+        const dur = e ? Math.max(0, e.mins - s.mins) : null;
         const row = document.createElement('div');
         row.className = 'jp-trip';
         row.innerHTML = `
             <div class="jp-col"><div class="jp-time">${jpClock(s.mins)}</div><div class="jp-sub">${jpWhen(s.mins)}</div></div>
-            <div class="jp-mid"><span>${real ? '' : '~'}${dur} min</span>
+            <div class="jp-mid"><span>${dur != null ? dur + ' min' : ''}</span>
                 <svg width="40" height="10" viewBox="0 0 40 10" fill="none"><path d="M1 5h36M33 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="jp-col end"><div class="jp-time arr">${real ? '' : '~'}${jpClock(arrMins)}</div><div class="jp-sub">Chegada</div></div>`;
+            <div class="jp-col end"><div class="jp-time arr">${e ? jpClock(e.mins) : '–'}</div><div class="jp-sub">${e ? 'Chegada' : 'Sem previsão'}</div></div>`;
         jpResults.appendChild(row);
     });
 }
