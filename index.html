@@ -227,19 +227,7 @@
             align-items: center;
             justify-content: center;
         }
-        .neon-box {
-            width: 12px; height: 12px;
-            border: 2px solid var(--c-blue);
-            background: rgba(24, 126, 194, 0.4);
-            box-shadow: 0 0 10px var(--c-blue), inset 0 0 4px var(--c-blue);
-            animation: pulse-neon 2s infinite;
-            box-sizing: border-box;
-        }
-        @keyframes pulse-neon {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        .user-person { width: 19px; height: 21px; display: block; filter: drop-shadow(0 0 3px rgba(0,0,0,.6)); }
         .bus-wrapper { position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
         .bus-dot {
             width: 14px; height: 14px;
@@ -298,7 +286,6 @@
         .stop-arrival-row:last-child { border-bottom: none; }
         .stop-arrival-time { font-size: 12px; font-weight: 700; color: var(--c-blue); flex-shrink: 0; }
         .stop-arrival-time-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex-shrink: 0; }
-        .stop-arrival-delay { font-size: 9px; font-weight: 600; line-height: 1; }
         .panel-info-col { flex: 1; min-width: 0; }
         .stop-arrival-badge, .bus-popup-badge {
             min-width: 36px; height: 20px; border-radius: 4px;
@@ -391,8 +378,68 @@
         .jp-sub { font-size: 10px; color: var(--muted); line-height: 1.2; }
         .jp-mid { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--muted); min-width: 56px; }
         .jp-mid span { font-size: 10px; font-weight: 600; }
-        .jp-delay { font-weight: 600; }
         .jp-note { padding: 7px 11px 9px; font-size: 10px; color: var(--muted); line-height: 1.4; }
+
+        .jp-col.jp-dep { flex-direction: row; align-items: center; gap: 12px; }
+        .jp-track { width: 30px; height: 30px; flex-shrink: 0; border-radius: 8px; border: 1.5px solid var(--border2); background: var(--bg); color: var(--c-blue); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+        .jp-track:hover { border-color: var(--c-blue); box-shadow: 0 0 10px rgba(24,126,194,.25); }
+        .bus-wrapper.tracked::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; border: 2px solid var(--c-blue); z-index: 3; animation: bus-ring 1.4s ease-out infinite; pointer-events: none; }
+        @keyframes bus-ring { from { transform: scale(.8); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
+        #jp-island { display: none; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1600; width: max-content; min-width: 190px; max-width: min(250px, calc(100vw - 20px)); background: var(--panel); border: 1px solid var(--border2); border-radius: 16px; box-shadow: 0 6px 28px rgba(0,0,0,.5); overflow: hidden; }
+        #jp-island.visible { display: block; }
+        #jp-island.open { width: 300px; max-width: calc(100vw - 20px); }
+        body.sidebar-open #jp-island, #jp-overlay.visible + #jp-island { display: none !important; }
+        .ji-bar { display: flex; align-items: center; gap: 10px; padding: 9px 10px 9px 11px; cursor: pointer; }
+        .ji-badge { min-width: 38px; height: 24px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .ji-main { flex: 1; min-width: 0; }
+        .ji-times { font-size: 13px; color: var(--muted); } .ji-times { white-space: nowrap; }
+        .ji-times b { color: var(--text); font-weight: 700; }
+        .ji-status { font-size: 10px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ji-chev { color: var(--muted); font-size: 14px; transition: transform .2s; } #jp-island.open .ji-chev { transform: rotate(180deg); }
+        .ji-detail { display: none; padding: 2px 12px 12px; border-top: 1px solid var(--border); }
+        #jp-island.open .ji-detail { display: block; }
+        .ji-route { font-size: 11px; font-weight: 600; margin: 9px 0 10px; line-height: 1.3; }
+        .ji-progress { position: relative; height: 4px; border-radius: 2px; background: var(--border2); margin: 0 5px 8px; }
+        .ji-progress i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--c-blue); width: 0; transition: width .6s; }
+        .ji-progress span { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--c-blue); border: 2px solid #fff; left: 0; transition: left .6s; }
+        .ji-eta { font-size: 10px; color: var(--muted); margin-bottom: 10px; }
+        .ji-actions { display: flex; gap: 6px; align-items: center; }
+        .ji-actions .vbtn { flex: 1; padding: 6px 4px; font-size: 11px; }
+        .ji-x { flex: 0 0 auto !important; padding: 6px 10px !important; }
+        .ji-actions .vbtn { line-height: 1.2; }
+        #jp-island.no-bus .ji-progress, #jp-island.no-bus #ji-center { display: none; }
+        @media (max-width: 768px) { #jp-island { top: 58px; } }
+        #help-btn { margin-left: auto; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border2); background: none; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
+        #help-btn:hover { color: var(--text); border-color: var(--muted); }
+        #intro { position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,.65); display: none; align-items: center; justify-content: center; padding: 14px; }
+        #intro.visible { display: flex; }
+        .intro-card { position: relative; max-height: calc(100dvh - 24px); overflow-y: auto; width: 360px; max-width: 100%; background: var(--panel); border: 1px solid var(--border2); border-radius: 14px; padding: 22px 20px 16px; box-shadow: 0 8px 40px rgba(0,0,0,.55); }
+        .intro-vis { height: 64px; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+        .intro-vis .ib { min-width: 40px; height: 24px; padding: 0 6px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; }
+        .intro-card h2 { font-size: 17px; margin-bottom: 8px; letter-spacing: -.2px; }
+        .intro-card p { font-size: 13px; line-height: 1.55; color: var(--muted); min-height: 40px; }
+        .intro-vis:empty { display: none; }
+        #intro.has-spot { background: transparent; }
+        #intro.has-spot .intro-card { position: fixed; width: min(340px, calc(100vw - 24px)); }
+        #intro-spot { display: none; position: fixed; border-radius: 12px; pointer-events: none; transition: all .25s; box-shadow: 0 0 0 9999px rgba(0,0,0,.68), 0 0 0 2px var(--c-blue), 0 0 18px 2px rgba(24,126,194,.6); }
+        #intro.has-spot #intro-spot { display: block; }
+        .intro-dots { display: flex; gap: 5px; justify-content: center; margin: 12px 0; }
+        .intro-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--border2); } .intro-dots i.on { background: var(--c-blue); }
+        .intro-btns { display: flex; gap: 8px; } .intro-btns .vbtn { padding: 8px 12px; font-size: 12px; }
+        #intro-next { flex: 1; background: var(--c-blue); color: #fff; border-color: transparent; }
+        #intro-x { position: absolute; top: 6px; right: 6px; background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; padding: 8px 10px; line-height: 1; }
+        #intro-x:hover { color: var(--text); }
+        @media (max-width: 768px) {
+            .jp-track { width: 38px; height: 38px; }
+            #help-btn { width: 34px; height: 34px; font-size: 15px; }
+            .intro-btns .vbtn { padding: 12px 14px; font-size: 13px; }
+            .ji-bar { padding: 11px 12px; }
+            .ji-actions .vbtn { padding: 10px 4px; }
+            .ji-x { padding: 10px 12px !important; }
+            body.has-island:not(.sidebar-open) #stale-warning { top: 130px; }
+            body.has-island:not(.sidebar-open) .side-panel { top: 124px; max-height: calc(100dvh - 190px); }
+            #intro-x { padding: 12px 14px; }
+        }
     </style>
 </head>
 <body class="sidebar-open">
@@ -404,6 +451,7 @@
             <h1>STCP</h1>
             <p id="route-count">Linhas</p>
         </div>
+        <button id="help-btn" title="Ajuda">?</button>
     </div>
     <div id="search-wrap">
         <input id="search" type="text" placeholder="Escolha uma linha ou destino">
@@ -509,6 +557,12 @@
         </div>
     </div>
 </div>
+<div id="jp-island"></div>
+<div id="intro"><div id="intro-spot"></div><div class="intro-card" role="dialog" aria-label="Introdução"><button id="intro-x" title="Saltar">✕</button>
+    <div class="intro-vis" id="intro-vis"></div><h2 id="intro-title"></h2><p id="intro-text"></p>
+    <div class="intro-dots" id="intro-dots"></div>
+    <div class="intro-btns"><button class="vbtn" id="intro-prev">Anterior</button><button class="vbtn" id="intro-next"></button></div>
+</div></div>
 <div class="gps-button" id="stops-btn" title="Mostrar paragens">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 22.5s-7.5-7.6-7.5-13.2a7.5 7.5 0 0 1 15 0c0 5.6-7.5 13.2-7.5 13.2z"></path>
@@ -537,14 +591,15 @@ const busPanelBody  = document.getElementById('bus-panel-body');
 const counterEl     = document.getElementById('counter');
 const timestampEl   = document.getElementById('timestamp');
 const staleWarningEl = document.getElementById('stale-warning');
-toggleBtn.addEventListener('click', () => {
-    const collapsed = sidebar.classList.toggle('collapsed');
+function setSidebar(collapsed) {
+    sidebar.classList.toggle('collapsed', collapsed);
     toggleBtn.classList.toggle('open', !collapsed);
     document.body.classList.toggle('sidebar-open', !collapsed);
     toggleBtn.textContent = collapsed ? '›' : '‹';
     busPanel.classList.toggle('sidebar-closed', collapsed);
     stopPanel.classList.toggle('sidebar-closed', collapsed);
-});
+}
+toggleBtn.addEventListener('click', () => setSidebar(!sidebar.classList.contains('collapsed')));
 const ROUTES = {
     "200": ["Bolhão", "Castelo do Queijo"],
     "401": ["Bolhão", "São Roque"],
@@ -670,7 +725,7 @@ map.on('locationfound', (e) => {
     if (!userMarker) {
         userMarker = L.marker(userPos, {
             zIndexOffset: 1000,
-            icon: L.divIcon({ className: 'user-location-marker', html: '<div class="neon-box"></div>', iconSize: [12, 12], iconAnchor: [6, 6] })
+            icon: L.divIcon({ className: 'user-location-marker', html: '<svg class="user-person" viewBox="3 2 18 20"><circle cx="12" cy="7" r="4" style="fill:#187ec2;stroke:#fff;stroke-width:1.2"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8z" style="fill:#187ec2;stroke:#fff;stroke-width:1.2;stroke-linejoin:round"/></svg>', iconSize: [21, 21], iconAnchor: [10, 10] })
         }).addTo(map);
     } else {
         userMarker.setLatLng(userPos);
@@ -808,14 +863,6 @@ function renderArrivals(data) {
         const timeWrap = document.createElement('div');
         timeWrap.className = 'stop-arrival-time-wrap';
         timeWrap.appendChild(timeEl);
-        if (a.delay_minutes != null) {
-            const delay = Math.round(a.delay_minutes);
-            const delayEl = document.createElement('div');
-            delayEl.className = 'stop-arrival-delay';
-            delayEl.style.color = delay > 0 ? 'var(--c-red)' : delay < 0 ? 'var(--c-green)' : 'var(--muted)';
-            delayEl.textContent = delay > 0 ? `+${delay} min` : `${delay} min`;
-            timeWrap.appendChild(delayEl);
-        }
         const row = document.createElement('div');
         row.className = 'stop-arrival-row';
         row.append(badge, destEl, timeWrap);
@@ -1024,6 +1071,7 @@ function drawRoutePolyline(coords, color, weight, extra = {}) {
     currentRouteLayer = L.polyline(coords, { color, weight, opacity: 1, lineJoin: 'round', ...extra }).addTo(map);
 }
 let routeRequestId = 0;
+let jpTrack = null, jpTrackTimer = null, jpMarks = [], jpEditing = false, jpUserChanged = false, jpRouteReq = 0;
 function renderRouteStopMarkers(stops, color) {
     stops.forEach(stop => {
         stopLayers.push(makeStopMarker(stop, { radius: 4, fillColor: color }));
@@ -1031,6 +1079,7 @@ function renderRouteStopMarkers(stops, color) {
 }
 async function showRoute(line, directionId, byBus) {
     const reqId = ++routeRequestId;
+    jpSyncMarks();
     closeStopPanel();
     clearRouteLayer();
     try {
@@ -1154,6 +1203,7 @@ async function updateBuses() {
     });
     liveData = data;
     updateBusPanel();
+    jpTrackUpdate();
     counterEl.innerText = `Autocarros: ${activeIds.size}`;
     timestampEl.innerText = `Update: ${formatTimestamp(data[0])}`;
     checkStaleWarning(data);
@@ -1181,6 +1231,7 @@ pollBuses();
 document.getElementById('stop-panel-close').addEventListener('click', () => {
     closeStopPanel();
     clearRouteLayer();
+    if (jpTrack) jpRouteShow();
 });
 document.getElementById('stop-panel-reload').addEventListener('click', () => {
     if (_currentStop) fetchStopArrivals(_currentStop);
@@ -1190,6 +1241,7 @@ document.getElementById('bus-panel-close').addEventListener('click', () => {
     selectedLine = null;
     selectedDirection = null;
     clearRouteLayer();
+    if (jpTrack) jpRouteShow();
     document.querySelectorAll('.route-item.active').forEach(el => el.classList.remove('active'));
     variantBar.classList.remove('visible');
     variantBtns.innerHTML = '';
@@ -1342,9 +1394,9 @@ function jpInit() {
     if (jpReady) return;
     jpReady = true;
     jpBuildLineOptions();
-    jpLineSel.addEventListener('change', () => { jpTouched = true; jpApplySelection(jpLineSel.value); });
-    jpStartSel.addEventListener('change', () => { jpFillEnd(parseInt(jpStartSel.value), true); jpCalc(); });
-    jpEndSel.addEventListener('change', jpCalc);
+    jpLineSel.addEventListener('change', () => { jpTouched = true; jpUserChanged = true; jpApplySelection(jpLineSel.value); });
+    jpStartSel.addEventListener('change', () => { jpUserChanged = true; jpFillEnd(parseInt(jpStartSel.value), true); jpCalc(); });
+    jpEndSel.addEventListener('change', () => { jpUserChanged = true; jpCalc(); });
 }
 function jpOpen() {
     jpInit();
@@ -1363,6 +1415,7 @@ function jpOpen() {
     jpTimer = setInterval(() => { if (!document.hidden) jpCalc(true); }, 15000);
 }
 function jpClose() {
+    jpEditing = false;
     jpOverlay.classList.remove('visible');
     jpBtn.classList.remove('active');
     clearInterval(jpTimer);
@@ -1389,7 +1442,8 @@ function jpSetLine(line, prefer) {
             b.className = 'vbtn';
             b.textContent = dir.headsign || `Sentido ${dir.direction_id}`;
             b.style.setProperty('--vbtn-color', color);
-            b.addEventListener('click', () => {
+            b.addEventListener('click', ev => {
+                if (ev.isTrusted) jpUserChanged = true;
                 jpDirBtns.querySelectorAll('.vbtn').forEach(x => x.classList.remove('active'));
                 b.classList.add('active');
                 jpSyncLineSelect(line, dir);
@@ -1467,8 +1521,7 @@ function jpParseArrivals(data) {
             line: canonicalLine(a.route_short_name || a.line || a.route || ''),
             dirId: a.direction_id ?? a.directionId,
             tripId: a.trip_id ?? a.tripId ?? null,
-            head: a.trip_headsign || a.headsign || a.destination_name || a.destination || a.direction || '',
-            delay: a.delay_minutes
+            head: a.trip_headsign || a.headsign || a.destination_name || a.destination || a.direction || ''
         }))
         .filter(a => a.mins != null);
 }
@@ -1502,6 +1555,7 @@ async function jpCalc(silent) {
     summary.className = 'jp-summary';
     summary.textContent = `${ei - si} paragens`;
     jpResults.appendChild(summary);
+    jpApplyEdit(starts, ends);
     if (!starts.length) {
         const empty = document.createElement('div');
         empty.className = 'side-panel-empty';
@@ -1515,19 +1569,268 @@ async function jpCalc(silent) {
         const row = document.createElement('div');
         row.className = 'jp-trip';
         row.innerHTML = `
-            <div class="jp-col"><div class="jp-time">${jpClock(s.mins)}</div><div class="jp-sub">${jpWhen(s.mins)}</div></div>
+            <div class="jp-col jp-dep"><div class="jp-col"><div class="jp-time">${jpClock(s.mins)}</div><div class="jp-sub">${jpWhen(s.mins)}</div></div><button class="jp-track" title="Ver posição do autocarro"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M7 18v2M17 18v2"/><circle cx="8.5" cy="14.5" r=".6"/><circle cx="15.5" cy="14.5" r=".6"/></svg></button></div>
             <div class="jp-mid"><span>${dur != null ? dur + ' min' : ''}</span>
                 <svg width="40" height="10" viewBox="0 0 40 10" fill="none"><path d="M1 5h36M33 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             <div class="jp-col end"><div class="jp-time arr">${e ? jpClock(e.mins) : '–'}</div><div class="jp-sub">${e ? 'Chegada' : 'Sem previsão'}</div></div>`;
+        row.querySelector('.jp-track').addEventListener('click', () => jpTrackStart(s, e, false, si, ei));
         jpResults.appendChild(row);
     });
+}
+function jpApplyEdit(starts, ends) {
+    if (!jpTrack || !jpEditing || !jpUserChanged) return;
+    const t = jpTrack, si = parseInt(jpStartSel.value), ei = parseInt(jpEndSel.value);
+    const sameRoute = String(t.line) === String(jpLine) && t.dirId === jpDir.direction_id && t.si === si;
+    const endFor = x => x.tripId != null ? ends.find(y => String(y.tripId) === String(x.tripId)) : null;
+    if (t.departed && sameRoute) {
+        const e = endFor(t);
+        t.ei = ei;
+        t.arrAt = e ? Date.now() + e.mins * 60000 : null;
+        t.seenEnd = !!e;
+        t.missEnd = 0;
+        jpDrawMarks(t);
+        document.getElementById('ji-route').textContent = `${t.stops[t.si].name} → ${t.stops[t.ei].name}`;
+        jpTrackUpdate();
+        return;
+    }
+    if (!starts.length) return;
+    const exp = (t.depAt - Date.now()) / 60000;
+    const idx = sameRoute ? starts.reduce((b, x, i) => Math.abs(x.mins - exp) < Math.abs(starts[b].mins - exp) ? i : b, 0) : 0;
+    jpTrackStart(starts[idx], endFor(starts[idx]), true, si, ei);
 }
 jpBtn.addEventListener('click', () => jpOverlay.classList.contains('visible') ? jpClose() : jpOpen());
 document.getElementById('jp-close').addEventListener('click', jpClose);
 document.getElementById('jp-reload').addEventListener('click', () => jpCalc());
 jpOverlay.addEventListener('click', e => { if (e.target === jpOverlay) jpClose(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && jpOverlay.classList.contains('visible')) jpClose(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && jpOverlay.classList.contains('visible') && !introEl.classList.contains('visible')) jpClose(); });
 
+const jpIsland = document.getElementById('jp-island');
+map.createPane('jpPane').style.zIndex = 399;
+const fmtClock = ms => new Date(ms).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+function jpCum(stops) {
+    const c = [0];
+    for (let i = 1; i < stops.length; i++) c.push(c[i - 1] + jpMeters(stops[i - 1].lat, stops[i - 1].lng, stops[i].lat, stops[i].lng));
+    return c;
+}
+function jpLocate(bus, t) {
+    let best = { d: Infinity, k: 0, pos: 0 };
+    for (let k = 0; k < t.stops.length - 1; k++) {
+        const a = t.stops[k], b = t.stops[k + 1], cos = Math.cos(a.lat * Math.PI / 180);
+        const bx = (b.lng - a.lng) * 111320 * cos, by = (b.lat - a.lat) * 111320;
+        const px = (bus.lng - a.lng) * 111320 * cos, py = (bus.lat - a.lat) * 111320;
+        const u = Math.max(0, Math.min(1, (px * bx + py * by) / (bx * bx + by * by || 1)));
+        const d = Math.hypot(px - u * bx, py - u * by);
+        if (d < best.d) best = { d, k, pos: t.cum[k] + u * (t.cum[k + 1] - t.cum[k]) };
+    }
+    return best;
+}
+function jpFindBus(t) {
+    if (t.tripId == null) return null;
+    return liveData.find(b => String(b.tripId ?? b.trip_id) === String(t.tripId)) || null;
+}
+function jpRouteShow() {
+    if (!jpTrack) return;
+    showRoute(jpTrack.line, jpTrack.dirId, true);
+    jpRouteReq = routeRequestId;
+    jpSyncMarks();
+}
+function jpSyncMarks() {
+    const show = !!jpTrack && routeRequestId === jpRouteReq;
+    jpMarks.forEach(m => show ? m.addTo(map) : map.removeLayer(m));
+}
+function jpTrackUpdate() {
+    Object.entries(busMarkers).forEach(([id, m]) => m.getElement()?.querySelector('.bus-wrapper')?.classList.toggle('tracked', !!jpTrack && jpTrack.busId != null && id === String(jpTrack.busId)));
+    if (!jpTrack) return;
+    const t = jpTrack, $ = id => document.getElementById(id);
+    if (!$('ji-status')) return;
+    const bus = jpFindBus(t);
+    t.busId = bus ? bus.id : null;
+    const sp = c => c === 1 ? '1 paragem' : `${c} paragens`;
+    let status = '', frac = 0, arrived = false;
+    t.pos = null;
+    if (bus) {
+        t.pos = [bus.lat, bus.lng];
+        const L = jpLocate(bus, t), s0 = t.cum[t.si], e0 = t.cum[t.ei];
+        if (L.pos > s0 + 40) t.departed = true;
+        if (!t.departed) status = L.pos >= s0 - 40 ? 'Junto à paragem de partida' : `A ${sp(Math.max(1, t.si - L.k))} da partida`;
+        else if (L.pos >= e0 - 40) { arrived = true; frac = 1; status = 'Chegou ao destino'; }
+        else { frac = (L.pos - s0) / Math.max(1, e0 - s0); status = `Em viagem · a ${sp(Math.max(1, t.ei - L.k))} do destino`; }
+    }
+    const now = Date.now();
+    t.arrived = arrived;
+    const departed = t.departed || (!bus && t.depAt < now - 60000);
+    const dm = Math.round((t.depAt - now) / 60000), am = t.arrAt ? Math.round((t.arrAt - now) / 60000) : null;
+    const arrTxt = am == null ? 'Em viagem' : am > 0 ? `Chega em ${am} min` : 'A chegar';
+    $('ji-depwrap').style.display = departed ? 'none' : '';
+    $('ji-dep').textContent = fmtClock(t.depAt);
+    $('ji-arr').textContent = t.arrAt ? fmtClock(t.arrAt) : '–';
+    $('ji-status').textContent = arrived ? status : departed ? arrTxt : (dm > 0 ? `Parte em ${dm} min` : 'Parte agora');
+    $('ji-eta').textContent = bus ? (departed ? `Partiu às ${fmtClock(t.depAt)} · ${status}` : status) : (departed ? `Partiu às ${fmtClock(t.depAt)}` : `Parte às ${fmtClock(t.depAt)}`);
+    jpIsland.classList.toggle('no-bus', !bus);
+    $('ji-fill').style.width = $('ji-bus').style.left = (Math.max(0, Math.min(1, frac)) * 100) + '%';
+    if (arrived && !t.closing) {
+        t.closing = true;
+        setTimeout(() => { if (jpTrack === t && t.arrived) jpTrackStop(); else t.closing = false; }, 5000);
+    }
+}
+async function jpTrackRefresh() {
+    const t = jpTrack;
+    if (!t || t.refreshing || document.hidden) return;
+    t.refreshing = true;
+    const cur = () => jpTrack === t;
+    const fetchStop = st => fetchJson(`${PROXY_BASE}/?stop=${st.id}`, undefined, cur);
+    const [a, b] = await Promise.all([t.departed ? null : fetchStop(t.stops[t.si]), fetchStop(t.stops[t.ei])]);
+    t.refreshing = false;
+    if (!cur()) return;
+    const now = Date.now();
+    const pick = (data, at) => {
+        const list = jpParseArrivals(data).filter(x => String(x.line) === String(t.line) && (x.dirId == null || Number(x.dirId) === t.dirId));
+        if (t.tripId != null) return list.find(x => String(x.tripId) === String(t.tripId)) || null;
+        if (at == null) return null;
+        const exp = (at - now) / 60000;
+        const m = list.map(x => ({ x, e: Math.abs(x.mins - exp) })).sort((p, q) => p.e - q.e)[0];
+        return m && m.e <= 6 ? m.x : null;
+    };
+    if (a && !t.departed) { const sa = pick(a, t.depAt); if (sa) t.depAt = now + sa.mins * 60000; }
+    const ea = pick(b, t.arrAt);
+    if (ea) {
+        t.arrAt = now + ea.mins * 60000;
+        t.seenEnd = true;
+        t.missEnd = 0;
+    } else if (t.tripId != null && b !== undefined && t.seenEnd && ++t.missEnd >= 2) {
+        jpTrackStop();
+        return;
+    }
+    jpTrackUpdate();
+}
+function jpClearMarks() { jpMarks.forEach(m => map.removeLayer(m)); jpMarks = []; }
+function jpTrackStop() {
+    clearInterval(jpTrackTimer);
+    if (jpTrack && routeRequestId === jpRouteReq) clearRouteLayer();
+    jpTrack = null;
+    jpEditing = false;
+    jpIsland.classList.remove('visible', 'open');
+    document.body.classList.remove('has-island');
+    jpClearMarks();
+    jpTrackUpdate();
+}
+function jpDrawMarks(t) {
+    jpClearMarks();
+    [[t.si, '#00ac00'], [t.ei, '#ff0000']].forEach(([i, c]) => jpMarks.push(
+        L.circleMarker([t.stops[i].lat, t.stops[i].lng], { radius: 9, color: '#fff', weight: 2, fillColor: c, fillOpacity: 1, pane: 'jpPane', interactive: false })));
+    jpSyncMarks();
+}
+function jpTrackStart(s, e, silent, si, ei) {
+    const prev = jpTrack, now = Date.now();
+    const sameRoute = !!prev && String(prev.line) === String(jpLine) && prev.dirId === jpDir.direction_id;
+    const keepState = !!silent && sameRoute && prev.si === si;
+    const t = {
+        line: jpLine, dirId: jpDir.direction_id, stops: jpStops, si, ei,
+        tripId: s.tripId, busId: null, pos: null, seenEnd: !!e, missEnd: 0, cum: jpCum(jpStops), departed: keepState ? prev.departed : false,
+        depAt: now + s.mins * 60000, arrAt: e ? now + e.mins * 60000 : null
+    };
+    jpTrack = t;
+    jpDrawMarks(t);
+    jpIsland.innerHTML = `
+        <div class="ji-bar" id="ji-bar"><span class="ji-badge" style="background:${getBusColor(t.line)}${getBusColor(t.line) === '#fcd116' ? ';color:#111318' : ''}">${lineLabel(t.line)}</span>
+            <div class="ji-main"><div class="ji-times"><span id="ji-depwrap"><b id="ji-dep"></b> → </span><b id="ji-arr"></b></div><div class="ji-status" id="ji-status"></div></div>
+            <span class="ji-chev">⌄</span></div>
+        <div class="ji-detail"><div class="ji-route" id="ji-route"></div>
+            <div class="ji-progress"><i id="ji-fill"></i><span id="ji-bus"></span></div><div class="ji-eta" id="ji-eta"></div>
+            <div class="ji-actions"><button class="vbtn" id="ji-center">Ver autocarro</button><button class="vbtn" id="ji-plan">Alterar viagem</button><button class="vbtn ji-x" id="ji-close" title="Terminar viagem">✕</button></div></div>`;
+    document.getElementById('ji-route').textContent = `${t.stops[t.si].name} → ${t.stops[t.ei].name}`;
+    document.getElementById('ji-bar').addEventListener('click', () => jpIsland.classList.toggle('open'));
+    document.getElementById('ji-center').addEventListener('click', () => { if (t.pos) map.flyTo(t.pos, 16, { duration: 1 }); });
+    document.getElementById('ji-plan').addEventListener('click', () => { jpEditing = true; jpUserChanged = false; jpOpen(); });
+    document.getElementById('ji-close').addEventListener('click', jpTrackStop);
+    jpIsland.classList.add('visible');
+    document.body.classList.add('has-island');
+    clearInterval(jpTrackTimer);
+    jpTrackTimer = setInterval(jpTrackRefresh, 15000);
+    if (!silent) { jpIsland.classList.remove('open'); jpClose(); setSidebar(true); }
+    if (!silent || !sameRoute) jpRouteShow();
+    jpTrackUpdate();
+    if (!silent) map.flyTo(t.pos || [t.stops[t.si].lat, t.stops[t.si].lng], 16, { duration: 1.2 });
+}
+
+const INTRO_KEY = 'stcp_intro_v2';
+const introEl = document.getElementById('intro'), introCard = introEl.querySelector('.intro-card'), introSpot = document.getElementById('intro-spot');
+const introNext = document.getElementById('intro-next'), introPrev = document.getElementById('intro-prev');
+const badgeVis = ['200', '500', '600', '700', '800', '900', '1M'].map(l => `<span class="ib" style="background:${getBusColor(l)}${l === '500' ? ';color:#111318' : ''}">${l}</span>`).join('');
+const mockIsland = `<div style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:14px"><div class="ji-bar" style="cursor:default"><span class="ji-badge" style="background:#187ec2">200</span><div class="ji-main"><div class="ji-times"><b>21:24</b> → <b>21:32</b></div><div class="ji-status">Parte em 3 min</div></div><span class="ji-chev">⌄</span></div></div>`;
+const introSteps = [
+    { v: badgeVis, t: 'Mapa de autocarros em tempo real', p: 'Cada ponto no mapa é um autocarro. A cor indica a linha e a seta o sentido de movimento. Toque num para ver a respetiva linha.' },
+    { target: '#search-wrap', sb: 'open', t: 'Pesquisar linhas', p: 'Procure por linha ou destino ou filtre por 200, 300... e selecione a direção para ver o percurso e as paragens.' },
+    { target: '#toggle-btn', sb: 'open', t: 'Recolher o painel', p: 'Esconda ou mostre o painel para ver o mapa inteiro.' },
+    { target: '#stops-btn', sb: 'close', t: 'Paragens', p: 'Mostra todas as paragens. Toque numa para ver as próximas chegadas.' },
+    { target: '#gps-btn', sb: 'close', t: 'A sua localização', p: 'Centra o mapa onde você está.' },
+    { target: '#jp-btn', sb: 'close', t: 'Planear viagem', p: 'Escolha linha, partida e chegada para ver horas e duração. Toque no ícone do autocarro para acompanhar a viagem.' },
+    { v: mockIsland, t: 'Viagem em curso', p: 'Ao seguir um autocarro, a viagem fica numa ilha no topo do mapa. Toque nela para expandir e no ✕ para terminar.' }
+];
+let introIdx = 0, introSidebarCollapsed = false;
+function introPlace() {
+    const st = introSteps[introIdx], el = st.target && document.querySelector(st.target), r = el && el.getBoundingClientRect();
+    const has = !!(r && r.width);
+    introEl.classList.toggle('has-spot', has);
+    if (!has) { introCard.style.left = introCard.style.top = ''; return; }
+    const pad = 6, vw = innerWidth, vh = innerHeight, cw = introCard.offsetWidth, ch = introCard.offsetHeight;
+    Object.assign(introSpot.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + 2 * pad + 'px', height: r.height + 2 * pad + 'px' });
+    let x, y;
+    if (vw <= 768) { x = (vw - cw) / 2; y = (r.top + r.height / 2 > vh / 2) ? 12 : vh - ch - 12; }
+    else {
+        x = r.right + pad + 16 + cw <= vw ? r.right + pad + 16 : r.left - pad - 16 - cw;
+        y = Math.min(Math.max(r.top + r.height / 2 - ch / 2, 12), vh - ch - 12);
+    }
+    introCard.style.left = Math.max(12, x) + 'px';
+    introCard.style.top = Math.max(12, y) + 'px';
+}
+function introRender() {
+    const st = introSteps[introIdx], last = introIdx === introSteps.length - 1;
+    if (st.sb === 'open') setSidebar(false);
+    else if (st.sb === 'close' && innerWidth <= 768) setSidebar(true);
+    document.getElementById('intro-vis').innerHTML = st.v || '';
+    document.getElementById('intro-title').textContent = st.t;
+    document.getElementById('intro-text').textContent = st.p;
+    document.getElementById('intro-dots').innerHTML = introSteps.map((_, i) => `<i class="${i === introIdx ? 'on' : ''}"></i>`).join('');
+    introNext.textContent = last ? 'Começar' : 'Seguinte';
+    introPrev.style.display = introIdx ? '' : 'none';
+    introPlace();
+    introNext.focus({ preventScroll: true });
+    setTimeout(() => introEl.classList.contains('visible') && introPlace(), 320);
+}
+function introOpen() {
+    if (introEl.classList.contains('visible')) return;
+    introIdx = 0;
+    introSidebarCollapsed = sidebar.classList.contains('collapsed');
+    introEl.classList.add('visible');
+    introRender();
+}
+function introClose() {
+    introEl.classList.remove('visible', 'has-spot');
+    setSidebar(introSidebarCollapsed);
+    try { localStorage.setItem(INTRO_KEY, '1'); } catch (e) {}
+}
+function introStep(d) {
+    const n = introIdx + d;
+    if (n < 0) return;
+    if (n >= introSteps.length) { introClose(); return; }
+    introIdx = n;
+    introRender();
+}
+introNext.addEventListener('click', () => introStep(1));
+introPrev.addEventListener('click', () => introStep(-1));
+document.getElementById('intro-x').addEventListener('click', introClose);
+document.getElementById('help-btn').addEventListener('click', introOpen);
+window.addEventListener('resize', () => introEl.classList.contains('visible') && introPlace());
+document.addEventListener('keydown', e => {
+    if (!introEl.classList.contains('visible')) return;
+    if (e.key === 'Escape') introClose();
+    else if (e.key === 'ArrowRight') introStep(1);
+    else if (e.key === 'ArrowLeft') introStep(-1);
+});
+let introSeen = false;
+try { introSeen = !!localStorage.getItem(INTRO_KEY); } catch (e) {}
+if (!introSeen) introOpen();
 </script>
 
 </body>
