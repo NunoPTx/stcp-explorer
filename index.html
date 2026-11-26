@@ -432,6 +432,7 @@
             .jp-track { width: 38px; height: 38px; }
             #help-btn { width: 34px; height: 34px; font-size: 15px; }
             .intro-btns .vbtn { padding: 12px 14px; font-size: 13px; }
+            #jp-island { min-width: 0; }
             .ji-bar { padding: 8px 8px 8px 9px; gap: 7px; }
             .ji-badge { min-width: 32px; height: 22px; font-size: 11px; }
             .ji-times { font-size: 12px; }
@@ -1639,7 +1640,7 @@ function jpPlaceIsland() {
     if (!jpIsland.offsetWidth) return;
     const tb = toggleBtn.getBoundingClientRect(), dashEl = document.getElementById('dashboard');
     const dashShown = dashEl.offsetWidth > 0, db = dashEl.getBoundingClientRect();
-    const gapL = tb.right + 8, gapR = (dashShown ? db.left : innerWidth) - 8;
+    const gapL = tb.right + 6, gapR = (dashShown ? db.left : innerWidth) - 6;
     st.maxWidth = 'none';
     if (!jpIsland.classList.contains('open') && jpIsland.offsetWidth <= gapR - gapL) {
         st.left = (gapL + gapR) / 2 + 'px';
