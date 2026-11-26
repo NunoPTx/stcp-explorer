@@ -150,7 +150,7 @@
             #toggle-btn { width: 42px; height: 42px; font-size: 24px; }
             :root { --panel-w: min(360px, 85vw); }
             #sidebar { min-width: 0; }
-            #toggle-btn.open { left: calc(var(--panel-w) - 26px); }
+            #toggle-btn.open { left: calc(var(--panel-w) + min(8px, (100vw - var(--panel-w) - 42px) / 2)); }
             .bus-wrapper { transform: scale(0.9); }
             body.sidebar-open .side-panel,
             body.sidebar-open #dashboard { display: none !important; }
@@ -408,7 +408,6 @@
         .ji-x { flex: 0 0 auto !important; padding: 6px 10px !important; }
         .ji-actions .vbtn { line-height: 1.2; }
         #jp-island.no-bus .ji-progress, #jp-island.no-bus #ji-center { display: none; }
-        @media (max-width: 768px) { #jp-island { top: 58px; } }
         #help-btn { margin-left: auto; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border2); background: none; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
         #help-btn:hover { color: var(--text); border-color: var(--muted); }
         #intro { position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,.65); display: none; align-items: center; justify-content: center; padding: 14px; }
@@ -433,7 +432,10 @@
             .jp-track { width: 38px; height: 38px; }
             #help-btn { width: 34px; height: 34px; font-size: 15px; }
             .intro-btns .vbtn { padding: 12px 14px; font-size: 13px; }
-            .ji-bar { padding: 11px 12px; }
+            .ji-bar { padding: 8px 8px 8px 9px; gap: 7px; }
+            .ji-badge { min-width: 32px; height: 22px; font-size: 11px; }
+            .ji-times { font-size: 12px; }
+            .ji-chev { font-size: 12px; }
             .ji-actions .vbtn { padding: 10px 4px; }
             .ji-x { padding: 10px 12px !important; }
             body.has-island:not(.sidebar-open) #stale-warning { top: 130px; }
@@ -598,6 +600,7 @@ function setSidebar(collapsed) {
     toggleBtn.textContent = collapsed ? '›' : '‹';
     busPanel.classList.toggle('sidebar-closed', collapsed);
     stopPanel.classList.toggle('sidebar-closed', collapsed);
+    jpPlaceIsland();
 }
 toggleBtn.addEventListener('click', () => setSidebar(!sidebar.classList.contains('collapsed')));
 const ROUTES = {
@@ -1421,6 +1424,7 @@ function jpClose() {
     clearInterval(jpTimer);
     jpTimer = null;
     jpCalcToken++;
+    jpPlaceIsland();
 }
 function jpSetLine(line, prefer) {
     jpLine = line;
@@ -1628,6 +1632,25 @@ function jpFindBus(t) {
     if (t.tripId == null) return null;
     return liveData.find(b => String(b.tripId ?? b.trip_id) === String(t.tripId)) || null;
 }
+function jpPlaceIsland() {
+    if (!jpTrack) return;
+    const st = jpIsland.style;
+    if (innerWidth > 768) { st.left = st.top = st.maxWidth = ''; return; }
+    if (!jpIsland.offsetWidth) return;
+    const tb = toggleBtn.getBoundingClientRect(), dashEl = document.getElementById('dashboard');
+    const dashShown = dashEl.offsetWidth > 0, db = dashEl.getBoundingClientRect();
+    const gapL = tb.right + 8, gapR = (dashShown ? db.left : innerWidth) - 8;
+    st.maxWidth = 'none';
+    if (!jpIsland.classList.contains('open') && jpIsland.offsetWidth <= gapR - gapL) {
+        st.left = (gapL + gapR) / 2 + 'px';
+        st.top = tb.top + 'px';
+    } else {
+        st.maxWidth = 'calc(100vw - 20px)';
+        st.left = '50%';
+        st.top = Math.max(tb.bottom, dashShown ? db.bottom : 0) + 8 + 'px';
+    }
+}
+window.addEventListener('resize', jpPlaceIsland);
 function jpRouteShow() {
     if (!jpTrack) return;
     showRoute(jpTrack.line, jpTrack.dirId, true);
@@ -1668,6 +1691,7 @@ function jpTrackUpdate() {
     $('ji-eta').textContent = bus ? (departed ? `Partiu às ${fmtClock(t.depAt)} · ${status}` : status) : (departed ? `Partiu às ${fmtClock(t.depAt)}` : `Parte às ${fmtClock(t.depAt)}`);
     jpIsland.classList.toggle('no-bus', !bus);
     $('ji-fill').style.width = $('ji-bus').style.left = (Math.max(0, Math.min(1, frac)) * 100) + '%';
+    jpPlaceIsland();
     if (arrived && !t.closing) {
         t.closing = true;
         setTimeout(() => { if (jpTrack === t && t.arrived) jpTrackStop(); else t.closing = false; }, 5000);
@@ -1739,7 +1763,7 @@ function jpTrackStart(s, e, silent, si, ei) {
             <div class="ji-progress"><i id="ji-fill"></i><span id="ji-bus"></span></div><div class="ji-eta" id="ji-eta"></div>
             <div class="ji-actions"><button class="vbtn" id="ji-center">Ver autocarro</button><button class="vbtn" id="ji-plan">Alterar viagem</button><button class="vbtn ji-x" id="ji-close" title="Terminar viagem">✕</button></div></div>`;
     document.getElementById('ji-route').textContent = `${t.stops[t.si].name} → ${t.stops[t.ei].name}`;
-    document.getElementById('ji-bar').addEventListener('click', () => jpIsland.classList.toggle('open'));
+    document.getElementById('ji-bar').addEventListener('click', () => { jpIsland.classList.toggle('open'); jpPlaceIsland(); });
     document.getElementById('ji-center').addEventListener('click', () => { if (t.pos) map.flyTo(t.pos, 16, { duration: 1 }); });
     document.getElementById('ji-plan').addEventListener('click', () => { jpEditing = true; jpUserChanged = false; jpOpen(); });
     document.getElementById('ji-close').addEventListener('click', jpTrackStop);
